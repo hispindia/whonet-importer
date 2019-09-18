@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import Papa from 'papaparse';
 import CardText from 'material-ui/Card/CardText';
 import { InputField } from '@dhis2/d2-ui-core';
-import swal from 'sweetalert';
 import LinearProgress from '../components/ui/LinearProgress';
 import MappingModal from '../components/settings/MappingModal';
 import HelpModal from '../components/settings/HelpModal';
@@ -130,9 +129,7 @@ class WHONETFileReader extends React.Component {
       let filename = event.target.files[0].name;
       let splittedName = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
       if (splittedName !== 'csv') {
-        swal("Sorry! Please upload correct file format! Accepted file fortmat is CSV. Your selected file name: " + event.target.files[0].name + " Last Modified: " + event.target.files[0].lastModified + " Size: " + event.target.files[0].size + " File type: " + event.target.files[0].type, {
-          icon: "warning",
-        });
+        this.giveUserFeedback("Sorry! Please upload correct file format! Accepted file fortmat is CSV. Your selected file name: " + event.target.files[0].name + " Last Modified: " + event.target.files[0].lastModified + " Size: " + event.target.files[0].size + " File type: " + event.target.files[0].type)
       }
       this.setState({
         csvfile: event.target.files[0],
@@ -447,31 +444,15 @@ class WHONETFileReader extends React.Component {
             teiResponseString: JSON.stringify(responseData.data)
           });
           if (responseData.data.httpStatus === "OK") {
-            /*swal("Successfully uploaded WHONET data!", {
-              icon: "success",
-            });
-            this.setState({
-              loading: false
-            });*/
-            this.setState({
-              feedBackToUser:
-                <Modal small open>
-                  <Modal.Content>Your data was successfully uploaded</Modal.Content>
-                  <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
-                </Modal>
-            });
+            this.giveUserFeedback('Your data was successfully uploaded')
           } else {
-            swal("Sorry! Unable to import WHONET file!", {
-              icon: "warning",
-            });
+            this.giveUserFeedback('Unable to import WHONET file')
             this.setState({
               loading: false
             });
           }
         } else {
-          swal("Sorry! Response data is undefined!", {
-            icon: "warning",
-          });
+          this.giveUserFeedback('Response data is undefined')
           this.setState({
             loading: false
           });
@@ -484,9 +465,7 @@ class WHONETFileReader extends React.Component {
       }
 
     } else {
-      swal("Sorry! Your prepared JSON payload is empty. Please check your CSV file data.", {
-        icon: "warning",
-      });
+      this.giveUserFeedback('The selected file is empty')
       this.setState({
         loading: false
       });
@@ -512,28 +491,14 @@ class WHONETFileReader extends React.Component {
 
     let orgUnitId = this.props.orgUnitId;
     if (typeof orgUnitId === 'undefined' || orgUnitId === null || orgUnitId === '') {
-      //Is this statement reachable??
-      swal({
-        title: "Sorry! Please select organisation unit first!",
-        icon: "warning",
-      });
+      this.giveUserFeedback('Please select an org. unit')
     } else if (typeof this.state.csvfile === 'undefined') {
-      this.setState({
-        feedBackToUser:
-          <Modal small open>
-            <Modal.Content>Please select a file</Modal.Content>
-            <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
-          </Modal>
-      });
-    } else if (this.state.fileFormatValue !== 'csv') {
-      this.setState({
-        feedBackToUser:
-          <Modal small open>
-            <Modal.Content>This file does not have a valid file format. The valid file format is csv.</Modal.Content>
-            <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
-          </Modal>
-      });
-    } else {
+      this.giveUserFeedback('Please select a file')
+    } 
+    else if (this.state.fileFormatValue !== 'csv') {
+      this.giveUserFeedback('This file does not have a valid file format. The valid file format is csv.')
+    } 
+    else {
         this.setState({
           feedBackToUser:
             <Modal small open>
@@ -546,41 +511,18 @@ class WHONETFileReader extends React.Component {
               </Modal.Actions>                
             </Modal>
         });
-      
-        /*
-      swal({
-        title: "Are you sure want to upload WHONET file?",
-        //text: "Once uploaded, you will not be able to recover WHONET-DHIS2 data!",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true,
-      })
-        .then((willUpload) => {
-
-          if (willUpload) {
-            checkOrgUnitInProgram(orgUnitId).then(result => {
-              if (typeof result !== 'undefined') {
-                if (result.length > 0) {
-                  this.importCSVFile("import");
-                }
-              } else {
-                swal({
-                  title: "Sorry your selected org unit was not assigned in this program. Please assign first!",
-                  icon: "error",
-                });
-              }
-            });
-
-          } else {
-            swal({
-              title: "Your uploading file is safe!",
-              icon: "success",
-            });
-          }
-        });
-        */
-
     }
+  }
+
+
+  giveUserFeedback = (feedback) => {
+    this.setState({
+      feedBackToUser:
+        <Modal small open>
+          <Modal.Content> {feedback} </Modal.Content>
+          <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
+        </Modal>
+    });
   }
 
 
@@ -593,13 +535,7 @@ class WHONETFileReader extends React.Component {
         }
       } 
       else {
-        this.setState({
-          feedBackToUser:
-            <Modal small open>
-              <Modal.Content>File upload failed. Your selected org. unit is not assigned to this program. </Modal.Content>
-              <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
-            </Modal>
-        });
+        this.giveUserFeedback('File upload failed. Your selected org. unit was not assigned to this program')
       }
     });
   }
@@ -619,13 +555,7 @@ class WHONETFileReader extends React.Component {
   */
   handleMultipleLabSettingModal = () => {
     if (this.props.orgUnitId.length === 0) {
-      this.setState({
-        feedBackToUser:
-          <Modal small open>
-            <Modal.Content>Please select an organization unit</Modal.Content>
-            <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
-          </Modal>
-      });
+      this.giveUserFeedback('Please select an organization unit')
     }
     else {
       this.setState({
