@@ -192,7 +192,7 @@ class DataElementsTable extends React.Component {
                 
                 metaDataUpdate('api/dataElements/'+updateArray[i].id, jsonPayload)
                   .then((response) => {
-                    console.log("Console results: ", response.data);
+                    //console.log("Console results: ", response.data);
                   });
                 if(i === j ){
                   this.setState({
