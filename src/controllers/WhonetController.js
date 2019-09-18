@@ -447,12 +447,6 @@ class WHONETFileReader extends React.Component {
             teiResponseString: JSON.stringify(responseData.data)
           });
           if (responseData.data.httpStatus === "OK") {
-            /*swal("Successfully uploaded WHONET data!", {
-              icon: "success",
-            });
-            this.setState({
-              loading: false
-            });*/
             this.setState({
               feedBackToUser:
                 <Modal small open>
@@ -546,41 +540,18 @@ class WHONETFileReader extends React.Component {
               </Modal.Actions>                
             </Modal>
         });
-      
-        /*
-      swal({
-        title: "Are you sure want to upload WHONET file?",
-        //text: "Once uploaded, you will not be able to recover WHONET-DHIS2 data!",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true,
-      })
-        .then((willUpload) => {
-
-          if (willUpload) {
-            checkOrgUnitInProgram(orgUnitId).then(result => {
-              if (typeof result !== 'undefined') {
-                if (result.length > 0) {
-                  this.importCSVFile("import");
-                }
-              } else {
-                swal({
-                  title: "Sorry your selected org unit was not assigned in this program. Please assign first!",
-                  icon: "error",
-                });
-              }
-            });
-
-          } else {
-            swal({
-              title: "Your uploading file is safe!",
-              icon: "success",
-            });
-          }
-        });
-        */
-
     }
+  }
+
+
+  giveUserFeedback = (feedback) => {
+    this.setState({
+      feedBackToUser:
+        <Modal small open>
+          <Modal.Content> {feedback} </Modal.Content>
+          <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
+        </Modal>
+    });
   }
 
 
@@ -593,13 +564,7 @@ class WHONETFileReader extends React.Component {
         }
       } 
       else {
-        this.setState({
-          feedBackToUser:
-            <Modal small open>
-              <Modal.Content>File upload failed. Your selected org. unit is not assigned to this program. </Modal.Content>
-              <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
-            </Modal>
-        });
+        this.giveUserFeedback('File upload failed. Your selected org. unit was not assigned to this program')
       }
     });
   }
