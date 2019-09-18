@@ -242,11 +242,14 @@ class WHONETFileReader extends React.Component {
               });
 
             } else {
+
+              // Elements filter from data store
               elementsFilterResult = dataStoreNamespaceElements.filter((element) => {
                 return element.sourceCode === columnName;
               });
 
               if (elementsFilterResult.length >= 1) {
+
                 let matchResult = columnValue.match(/\//g);
                 if (matchResult !== null && matchResult.length === 2) {
                   elementValue = formatDate(columnValue);
