@@ -254,6 +254,7 @@ class WHONETFileReader extends React.Component {
                   elementValue = columnValue.replace(/[=><_]/gi, '');
                 }
                 elementId = elementsFilterResult[0].id;
+
                 // Options checking for data elements
                 await getElementDetails(elementId).then((deResponse) => {
                   
@@ -261,6 +262,7 @@ class WHONETFileReader extends React.Component {
 
                     let updatedElId = deResponse.data.id;
                     let optionSetId = deResponse.data.optionSet;
+                    
                   // Get option sets with all options
                     getOptionSetDetails(optionSetId.id).then((osResponse) => {
                       if(typeof osResponse!== 'undefined'){
