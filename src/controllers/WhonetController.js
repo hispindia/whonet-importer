@@ -287,7 +287,7 @@ class WHONETFileReader extends React.Component {
                       } // end of osResponse
                     });                                  
                       
-                  } else { // if this element has no option set
+                  } else { // if this element has no option set, the value will be the excel/csv cell value
                       eventsPayload[index] = {
                         "dataElement": elementId, 
                         "value": elementValue
