@@ -1,0 +1,58 @@
+.pageContainer {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: row; 
+    /*background-color: rgb(240, 240, 240);*/
+}
+.orgUnitTreeCard {
+    padding: 1%;
+    width: auto !important;
+    max-width: 40%;
+    overflow: auto; 
+}
+.whoNetController {
+    flex-grow: 1;
+    width: auto;
+    /*max-width: 75%;*/
+}
+.fileUploadCard {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 1%;    
+    height: 20vh !important; 
+}
+.fileUploadCardTopContent {
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between;
+}
+.fileUploadCardBottomContent {
+    margin-top: 2%;
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between;
+ }
+ .resultCard {
+     margin-top: 2%;
+ }
+ .helpModalContainer {
+     margin-top: 2%;
+ }
+ .elementsTable {
+    width: auto !important;
+ }
+ .alertBar {
+     z-index: 2; 
+     position: absolute; 
+ }
+ .editDataElementLink {
+     text-decoration: none;
+     color: black; 
+ }
+ .importPreview {
+     padding: 1%; 
+ }
+
+ 
