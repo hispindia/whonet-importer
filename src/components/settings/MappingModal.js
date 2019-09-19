@@ -34,7 +34,7 @@ class MappingModal extends React.Component {
                 <Tabs settingType={this.props.settingType} orgUnitId={orgUnitId} orgUnitName={orgUnitName}/>
           </Modal.Content>
           <Modal.Actions>
-            <Button type="button" onClick={this.props.handleModal}>Cancel</Button>
+            <Button type="button" onClick={this.props.handleModal}>Close</Button>
             <Button primary>Put save button here</Button>
           </Modal.Actions>    
         </Modal>

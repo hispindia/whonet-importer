@@ -4,13 +4,9 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import swal from 'sweetalert';
-import LinearProgress from '../../ui/LinearProgress';
 import * as styleProps  from '../../ui/Styles';
 import * as config  from '../../../config/Config';
-import { Card } from '@dhis2/ui-core';
+import { Card, AlertBar, CircularLoader } from '@dhis2/ui-core';
 import { 
     metaDataUpdate,
     getOptionDetails,
@@ -32,6 +28,7 @@ class OptionsTable extends React.Component {
       OrgUnitName: "",
       dataStoreNamespace: [],
       mergedArrayData: [],
+      feedbackToUser: '',            
     };
 
     this.handleInputChange   = this.handleInputChange.bind(this);
@@ -86,9 +83,28 @@ class OptionsTable extends React.Component {
       let mergedArray = mergeById(this.state.optionSets, this.state.dataStoreNamespace);
       this.setState({mergedArrayData: mergedArray});
     }
-    
-
   }
+
+
+  giveFeedbackToUser = (feedback) => {
+    if (feedback==='success') {
+      this.setState({feedbackToUser: 
+        <AlertBar duration={8000} icon success className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+          Mapping was successfully updated
+        </AlertBar>
+      })
+    }
+    else {
+      this.setState({
+        feedbackToUser:
+          <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+            Mapping could not be updated
+          </AlertBar>
+        });
+    } 
+	}
+
+
   /**
   * {id, value} returns the element id and input value
   * {optionSets} store the current state options array
@@ -173,16 +189,12 @@ class OptionsTable extends React.Component {
           this.setState({
             loading: false,
           });
-          swal("Setting information was updated successfully!", {
-              icon: "success",
-          });
+          this.giveFeedbackToUser('success')
         }
         console.log("Console results: ", response.data);
       }).catch(error => { 
         console.log({error}); 
-        swal("Sorry! Unable to update setting information!", {
-              icon: "error",
-        });
+        this.giveFeedbackToUser('fail')
       });
 
     } else {
@@ -194,16 +206,12 @@ class OptionsTable extends React.Component {
           this.setState({
             loading: false,
           });
-          swal("Setting information was updated successfully!", {
-              icon: "success",
-          });
+          this.giveFeedbackToUser('success')
         }
         console.log("Console results: ", response.data);
       }).catch(error => { 
         console.log({error}); 
-        swal("Sorry! Unable to update setting information!", {
-              icon: "error",
-        });
+        this.giveFeedbackToUser('fail')
       });
     }
    
@@ -238,7 +246,7 @@ class OptionsTable extends React.Component {
     });
     let spinner;
     if(this.state.loading){
-      spinner = <LinearProgress />
+      spinner = <CircularLoader className="circularLoader"/>
     }
     return (
       <div >
@@ -277,6 +285,7 @@ class OptionsTable extends React.Component {
     
     return (
       <div>
+        {this.state.feedbackToUser}
         {optionSetsList}
       </div>
     );
