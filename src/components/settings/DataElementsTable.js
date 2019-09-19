@@ -4,13 +4,9 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-//import Button from '@material-ui/core/Button';
-import swal from 'sweetalert';
-import LinearProgress from '../ui/LinearProgress';
 import * as styleProps  from '../ui/Styles';
 import * as config  from '../../config/Config';
-import { Button } from '@dhis2/ui-core';
+import { Card, AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
 import '../../style/dhis2UiStyle.css';
 import { 
     metaDataUpdate,
@@ -25,11 +21,13 @@ class DataElementsTable extends React.Component {
       value   : '',
       loading : false,
       dataElements: [],
+      feedbackToUser: '',
     };
 
     this.handleInputChange   = this.handleInputChange.bind(this);
     this.renderDataElements  = this.renderDataElements.bind(this);
     this.handleSubmitElements= this.handleSubmitElements.bind(this);
+    this.updateMapping = this.updateMapping.bind(this);
   }
   componentWillMount(){
     let self = this;
@@ -39,6 +37,27 @@ class DataElementsTable extends React.Component {
         }); 
       }).catch(error => this.setState({error: true}));
   }
+
+
+  giveFeedbackToUser = (feedback) => {
+    if (feedback==='success') {
+      this.setState({feedbackToUser: 
+        <AlertBar duration={8000} icon success className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+          Mapping was successfully updated
+        </AlertBar>
+      })
+    }
+    else {
+      this.setState({
+        feedbackToUser:
+          <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+            Mapping could not be updated
+          </AlertBar>
+        });
+    } 
+  }
+
+
   handleInputChange(e) {
     
     /**
@@ -67,6 +86,8 @@ class DataElementsTable extends React.Component {
      
     }
   }
+
+
   renderDataElements() {
     const classes = this.props;
     const {dataElements} = this.state;
@@ -88,7 +109,7 @@ class DataElementsTable extends React.Component {
     });
     let spinner;
     if(this.state.loading){
-      spinner = <LinearProgress />
+      spinner = <CircularLoader className="circularLoader"/>
     }
     return (
       <div>
@@ -115,118 +136,90 @@ class DataElementsTable extends React.Component {
       </div>
     )
   }
+
+
   handleSubmitElements(e) {
-    this.setState({ // need to upgrade this logic
-      loading: true,
-    });
     e.preventDefault();
     let updateArray = e.target;   
+    this.setState({
+      feedbackToUser:
+        <Modal small open>
+          <Modal.Content>Are you sure you want to upload mapping?</Modal.Content>
+          <Modal.Actions>
+            <ButtonStrip>
+              <Button onClick={() => this.setState({ feedbackToUser: '' })}>Cancel</Button>
+              <Button primary onClick={() => this.updateMapping(updateArray)}>Confirm</Button>
+            </ButtonStrip>
+          </Modal.Actions>                
+        </Modal>
+    });
+  }
 
-    swal({
-      title: "Are you sure want to update?",
-      icon: "warning",
-      buttons: true,
-      dangerMode: true,
-    })
-    .then((willUpdate) => {    
-      if (willUpdate) {        
-        
-        /**
-        * Iterate {updateArray} that contains the updated values from settings input
-        * {getElementDetails} returns the updated elements detail
-        * {customElementString} store the data element detail information
-        * {attributeId} returns whether the existing meta attribute exist or not. If do not exist then create the `attribute` array from static configuration `config.metaAttributeUId` 
-        * {jsonPayload} returns the final payload to update the meta attributes 
-        * {metaDataUpdate} does the `PUT` operations and return messages
-        * @returns j-success message and close the loader
-        */
-        for (let i = 0; i < updateArray.length-1; i++) { //updateArray.length-1
-          let j=0;
-          if(/*updateArray[i].value !== '' && */updateArray[i].value !== 'true' ){
+  updateMapping(updateArray) {
+    this.setState({
+      loading: true, feedbackToUser: '',
+    });
+    for (let i = 0; i < updateArray.length-1; i++) { 
+      let j=0;
+      if(/*updateArray[i].value !== '' && */updateArray[i].value !== 'true' ){
+        getElementDetails(updateArray[i].id).then((response) => {
+            let customElementString = response.data;
+            let jsonPayload = "";
+            if(typeof customElementString.optionSet !=='undefined' ){
 
-            getElementDetails(updateArray[i].id).then((response) => {
-                let customElementString = response.data;
-                /*let attributeId = customElementString.attributeValues.map( val => val.attribute.id);
-                if(typeof attributeId[0] !== 'undefined'){
-                  attributeId = attributeId[0];
-                } else {
-                  attributeId = config.metaAttributeUId;
-                }*/
-                
-                /**
-                * This below commented json was developed for meta attributes value update 
-                * Keep this code until final deployment
-                */ 
-                //let jsonPayload = JSON.stringify({"name": customElementString.name,"shortName": customElementString.shortName,"aggregationType": customElementString.aggregationType,"domainType": customElementString.domainType,"valueType": customElementString.valueType,"attributeValues": [{"value": updateArray[i].value,"attribute": { "id": attributeId }}]});
-                let jsonPayload = "";
-                if(typeof customElementString.optionSet !=='undefined' ){
-
-                  jsonPayload = JSON.stringify({
-                    "name": customElementString.name,
-                    "shortName": customElementString.shortName,
-                    "aggregationType": customElementString.aggregationType,
-                    "domainType": customElementString.domainType,
-                    "valueType": customElementString.valueType,
-                    "code": updateArray[i].value,
-                    "optionSet": {
-                        "id": customElementString.optionSet.id
-                    },
-                    "categoryCombo": {
-                        "id": customElementString.categoryCombo.id
-                    }
-                  });
-
-                } else {
-                  jsonPayload = JSON.stringify({
-                    "name": customElementString.name,
-                    "shortName": customElementString.shortName,
-                    "aggregationType": customElementString.aggregationType,
-                    "domainType": customElementString.domainType,
-                    "valueType": customElementString.valueType,
-                    "code": updateArray[i].value,
-                    "categoryCombo": {
-                        "id": customElementString.categoryCombo.id
-                    }
-                  });
-                }  
-                
-                metaDataUpdate('api/dataElements/'+updateArray[i].id, jsonPayload)
-                  .then((response) => {
-                    //console.log("Console results: ", response.data);
-                  });
-                if(i === j ){
-                  this.setState({
-                    loading: false,
-                  });
-                  swal("Successfully updated meta attribute!", {
-                      icon: "success",
-                  });
+              jsonPayload = JSON.stringify({
+                "name": customElementString.name,
+                "shortName": customElementString.shortName,
+                "aggregationType": customElementString.aggregationType,
+                "domainType": customElementString.domainType,
+                "valueType": customElementString.valueType,
+                "code": updateArray[i].value,
+                "optionSet": {
+                    "id": customElementString.optionSet.id
+                },
+                "categoryCombo": {
+                    "id": customElementString.categoryCombo.id
                 }
               });
-            j++;           
 
-          }
-         
-        }
-        
-      } else {
-        swal({
-            title: "Your data is safe!",
-            icon: "success",
-        });
-        this.setState({
-          loading: false,
-        });
+            } else {
+              jsonPayload = JSON.stringify({
+                "name": customElementString.name,
+                "shortName": customElementString.shortName,
+                "aggregationType": customElementString.aggregationType,
+                "domainType": customElementString.domainType,
+                "valueType": customElementString.valueType,
+                "code": updateArray[i].value,
+                "categoryCombo": {
+                    "id": customElementString.categoryCombo.id
+                }
+              });
+            }  
+            metaDataUpdate('api/dataElements/'+updateArray[i].id, jsonPayload)
+              .then((response) => {
+                //console.log("Console results: ", response.data);
+              });
+            if(i === j ){
+              this.setState({
+                loading: false,
+              });
+              this.giveFeedbackToUser('success')
+              return
+            }
+          });
+        j++;           
       }
-    });
-    
+    }
   }
+
+
   render(){
     
     const dataElementList = this.renderDataElements();
     
     return (
       <div>
+        {this.state.feedbackToUser}
         {dataElementList}
       </div>
     );
