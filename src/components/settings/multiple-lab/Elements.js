@@ -16,6 +16,7 @@ import {
     createDateStoreNameSpace
 } from '../../api/API';
 
+
 class DataElementsTable extends React.Component {
    constructor(props) {
     super(props);
@@ -29,34 +30,29 @@ class DataElementsTable extends React.Component {
       mergedArrayData: [],
       feedbackToUser: '',      
     };
-
     this.handleInputChange   = this.handleInputChange.bind(this);
     this.renderDataElements  = this.renderDataElements.bind(this);
     this.handleSubmitElements= this.handleSubmitElements.bind(this);
+    this.saveMapping = this.saveMapping.bind(this);
   }
-  /**
-  *
-  *
-  */
+ 
+
   async componentWillMount(){
     this.setState({
       orgUnitId: this.props.orgUnitId,
       OrgUnitName: this.props.OrgUnitName
     });
-
     let self = this;
     await getPrograms().then((response) => {
       self.setState({
         dataElements : response.data.programs[0].programStages[0].programStageDataElements       
       }); 
     }).catch(error => this.setState({error: true}));
-
     await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
       self.setState({
         dataStoreNamespace : response.data.elements      
       }); 
     }).catch(error => this.setState({error: true}));
-
     // Merge two array
     const mergeById = (jsonPayload1, jsonPayload2) =>
     jsonPayload1.map(itm => ({
@@ -67,7 +63,6 @@ class DataElementsTable extends React.Component {
       let mergedArray = mergeById(this.state.dataElements, this.state.dataStoreNamespace);
       this.setState({mergedArrayData: mergedArray});
     }
-
   }
 
 
@@ -87,7 +82,13 @@ class DataElementsTable extends React.Component {
           </AlertBar>
         });
     } 
-	}
+  }
+  
+
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
+  }
 
 
   /**
@@ -98,10 +99,8 @@ class DataElementsTable extends React.Component {
   * if {attributeValues} is empty, develop custom payload from configuration `config.metaAttributeName` & `config.metaAttributeUId` 
   */
   handleInputChange(e) {    
-    
     const {id, value}  = e.target;
     let {dataElements, dataStoreNamespace, mergedArrayData} = this.state;
-    
     const targetIndex  = mergedArrayData.findIndex(datum => {
       return datum.id === id;
     });
@@ -125,6 +124,7 @@ class DataElementsTable extends React.Component {
  
 
   async handleSubmitElements(e) {
+    console.log("handleSubmitElements")
     this.setState({ 
       loading: true,
     });
@@ -136,17 +136,11 @@ class DataElementsTable extends React.Component {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
         let len = elementObj.length;
-
         for( let j=0; j < 1; j++  ) {
           await ( async ([columnName, columnValue], index ) => {
             if(updateArray[i].value !== '' ){
               const result= await getElementDetails(updateArray[i].id);
                 let customElementString = result.data;
-
-                // This json payload is for dataelements code updates
-                //let jsonPayload = JSON.stringify({"name": customElementString.name,"shortName": customElementString.shortName,"aggregationType": customElementString.aggregationType,"domainType": customElementString.domainType,"valueType": customElementString.valueType,"code": updateArray[i].value});
-                
-                // Array for datastore update
                 updateElementsPayload.push({
                   "id": customElementString.id,
                   "name": customElementString.name,
@@ -156,7 +150,6 @@ class DataElementsTable extends React.Component {
             }    
           } ) (elementObj[j], {}, j);
         } 
-        
       } ) ( updateArray[i], {}, i );
     }
     // Find the setting key exist or not
@@ -184,7 +177,6 @@ class DataElementsTable extends React.Component {
         console.log({error}); 
         this.giveFeedbackToUser('fail')
       });
-
     } else {
       dataStoreNameSpace.elements = updateElementsPayload; // update existing elements
       let finalPayload = dataStoreNameSpace;
@@ -202,12 +194,12 @@ class DataElementsTable extends React.Component {
         this.giveFeedbackToUser('fail')
       });
     }
-   
   }
+
+
   renderDataElements() {
     const classes = this.props;
     let {dataElements, dataStoreNamespace, mergedArrayData} = this.state;
-    
     let content = mergedArrayData.map(datum => {
       return (
         <TableRow key={datum.dataElement.id}>
@@ -249,7 +241,6 @@ class DataElementsTable extends React.Component {
               {content}             
             </TableBody>          
           </Table>
-          <input type="submit" value="Save Elements" style={styleProps.styles.submitButton}/>
           </form> 
           {spinner}
       </div>
