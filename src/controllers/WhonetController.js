@@ -644,7 +644,7 @@ class WHONETFileReader extends React.Component {
             {multipleLabModal}
           </Menu>
         }>
-        Settings
+        Mapping setup
         </DropdownButton>
 
     let helpModal = <Button small onClick={this.handleHelpModal} >Help</Button>
@@ -656,7 +656,6 @@ class WHONETFileReader extends React.Component {
           <Card className="fileUploadCard">
 
             <div className="fileUploadCardTopContent">
-              <h3>Select WHONET csv file</h3>
               <ButtonStrip>
                 {settingsDropDown}
                 {helpModal}
@@ -675,7 +674,6 @@ class WHONETFileReader extends React.Component {
                 onChange={this.handleChangeFileUpload}
                 accept=".csv"
               />
-              <div style={this.state.orgUnit}></div>
               <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.disableImportButton}>Import</Button>
             </div>
 

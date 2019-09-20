@@ -27,7 +27,7 @@ class App extends Component {
         return (
             <D2UIApp>
                 <MuiThemeProvider theme={createMuiTheme(dhis2theme)}>
-                    <HeaderBar/> 
+                    <HeaderBar appName='Whonet Importer'/> 
                     <OrgUnitTree d2={this.state.d2} />
                 </MuiThemeProvider>
             </D2UIApp>
