@@ -80,8 +80,14 @@ class AttributesTable extends React.Component {
           <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
             Mapping could not be updated
           </AlertBar>
-        });
+      });
     } 
+  }
+
+
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
   }
 
 
@@ -124,7 +130,6 @@ class AttributesTable extends React.Component {
               {content}             
             </TableBody>          
           </Table>
-          <input type="submit" value="Save Attributes" style={styleProps.styles.submitButton}/>
           </form> 
           {spinner}
         </div>

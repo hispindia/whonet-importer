@@ -30,15 +30,12 @@ class OptionsTable extends React.Component {
       mergedArrayData: [],
       feedbackToUser: '',            
     };
-
     this.handleInputChange   = this.handleInputChange.bind(this);
     this.renderOptionSets    = this.renderOptionSets.bind(this);
     this.handleOptionsSubmit = this.handleOptionsSubmit.bind(this);
   }
-  /**
-  *
-  *
-  */
+ 
+
   async componentWillMount(){
     this.setState({
       orgUnitId: this.props.orgUnitId,
@@ -46,7 +43,6 @@ class OptionsTable extends React.Component {
     });
     let self = this;
     let customizedOptionSets = [];
-
     await getOptionSets().then((response) => {
       response.data.optionSets.map( data => {
         data.options.map(option=>{
@@ -60,9 +56,7 @@ class OptionsTable extends React.Component {
         customizedOptionSets.push(arr);  // Custom array with the combinations of option set and options
         })
       });
-      
     }).catch(error => this.setState({error: true}));
-
     self.setState({
         optionSets : customizedOptionSets       
     }); 
@@ -71,14 +65,12 @@ class OptionsTable extends React.Component {
         dataStoreNamespace : response.data.options      
       }); 
     }).catch(error => this.setState({error: true}));
-
     // Merge two array
     const mergeById = (jsonPayload1, jsonPayload2) =>
     jsonPayload1.map(itm => ({
         ...jsonPayload2.find((item) => (item.id === itm.id) && item),
         ...itm
     }));
-
     if (typeof this.state.dataStoreNamespace !== 'undefined') {
       let mergedArray = mergeById(this.state.optionSets, this.state.dataStoreNamespace);
       this.setState({mergedArrayData: mergedArray});
@@ -102,7 +94,13 @@ class OptionsTable extends React.Component {
           </AlertBar>
         });
     } 
-	}
+  }
+  
+
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
+  }
 
 
   /**
@@ -113,7 +111,6 @@ class OptionsTable extends React.Component {
   * if {attributeValues} is empty, develop custom payload from configuration `config.metaAttributeName` & `config.metaAttributeUId` 
   */
   handleInputChange(e) {    
-    
     const {id, value}  = e.target;
     let {optionSets, dataStoreNamespace, mergedArrayData} = this.state;
     const targetIndex  = mergedArrayData.findIndex(datum => {
@@ -132,11 +129,8 @@ class OptionsTable extends React.Component {
       this.setState({mergedArrayData});
     }
   }
-  /**
-  *
-  *
-  *
-  */
+  
+
   async handleOptionsSubmit(e) {
     this.setState({ 
       loading: true,
@@ -149,7 +143,6 @@ class OptionsTable extends React.Component {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
         let len = elementObj.length;
-
         for( let j=0; j < 1; j++  ) {
           await ( async ([columnName, columnValue], index ) => {
             if(updateArray[i].value !== '' ){
@@ -166,8 +159,7 @@ class OptionsTable extends React.Component {
                 });   
             }    
           } ) (elementObj[j], {}, j);
-        } 
-        
+        }   
       } ) ( updateArray[i], {}, i );
     }
     // Find the setting key exist or not
@@ -214,34 +206,33 @@ class OptionsTable extends React.Component {
         this.giveFeedbackToUser('fail')
       });
     }
-   
   }
-  renderOptionSets() {
 
+
+  renderOptionSets() {
     const classes         = this.props;
     let {mergedArrayData} = this.state;
-
     let content = mergedArrayData.map(datum => {
-        return (
-          <TableRow key={datum.id}>
-            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-              {datum.optionSetName}
-            </TableCell> 
-            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-              {datum.name}
-            </TableCell>
-            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-              {datum.code}
-            </TableCell>
-            <TableCell style={styleProps.styles.tableHeader}>
-              <input 
-              type="text" 
-              id={datum.id}
-              value={ datum.mapCode || ''}
-              onChange={this.handleInputChange} 
-              style={styleProps.styles.inputText}/>
-            </TableCell> 
-          </TableRow>
+      return (
+        <TableRow key={datum.id}>
+          <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+            {datum.optionSetName}
+          </TableCell> 
+          <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+            {datum.name}
+          </TableCell>
+          <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+            {datum.code}
+          </TableCell>
+          <TableCell style={styleProps.styles.tableHeader}>
+            <input 
+            type="text" 
+            id={datum.id}
+            value={ datum.mapCode || ''}
+            onChange={this.handleInputChange} 
+            style={styleProps.styles.inputText}/>
+          </TableCell> 
+        </TableRow>
         )
     });
     let spinner;
@@ -272,25 +263,25 @@ class OptionsTable extends React.Component {
             {content}             
           </TableBody>          
         </Table>
-        <input type="submit" value="Save Options" style={styleProps.styles.submitButton}/>
         </form> 
         {spinner}
       </div>
     )
   }
-  
+
+
   render(){
-    
-    const optionSetsList = this.renderOptionSets();
-    
+    const optionSetsList = this.renderOptionSets(); 
     return (
       <div>
         {this.state.feedbackToUser}
         {optionSetsList}
       </div>
     );
-
-  }          
+  }
+  
+  
 }
+
 
 export default OptionsTable;

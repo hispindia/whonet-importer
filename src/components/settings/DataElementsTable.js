@@ -58,8 +58,13 @@ class DataElementsTable extends React.Component {
   }
 
 
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
+  }
+
+
   handleInputChange(e) {
-    
     /**
     * {id, value} returns the element id and input value
     * {dataElements} store the current state elements array
@@ -123,14 +128,12 @@ class DataElementsTable extends React.Component {
               <TableCell style={styleProps.styles.tableHeader}> 
                 <strong><h3> Codes </h3></strong> 
               </TableCell>
-
             </TableRow>
           </TableHead>
           <TableBody>            
             {content}             
           </TableBody>          
         </Table>
-        <input type="submit" value="Save Elements" style={styleProps.styles.submitButton}/>
         </form> 
         {spinner}
       </div>
@@ -155,6 +158,7 @@ class DataElementsTable extends React.Component {
     });
   }
 
+
   updateMapping(updateArray) {
     this.setState({
       loading: true, feedbackToUser: '',
@@ -166,7 +170,6 @@ class DataElementsTable extends React.Component {
             let customElementString = response.data;
             let jsonPayload = "";
             if(typeof customElementString.optionSet !=='undefined' ){
-
               jsonPayload = JSON.stringify({
                 "name": customElementString.name,
                 "shortName": customElementString.shortName,
@@ -181,7 +184,6 @@ class DataElementsTable extends React.Component {
                     "id": customElementString.categoryCombo.id
                 }
               });
-
             } else {
               jsonPayload = JSON.stringify({
                 "name": customElementString.name,
@@ -214,17 +216,17 @@ class DataElementsTable extends React.Component {
 
 
   render(){
-    
     const dataElementList = this.renderDataElements();
-    
     return (
       <div>
         {this.state.feedbackToUser}
         {dataElementList}
       </div>
     );
-
-  }          
+  }
+  
+  
 }
+
 
 export default DataElementsTable;

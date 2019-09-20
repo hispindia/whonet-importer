@@ -16,6 +16,7 @@ import {
     createDateStoreNameSpace
 } from '../../api/API';
 
+
 class Attributes extends React.Component {
    constructor(props) {
     super(props);
@@ -29,34 +30,28 @@ class Attributes extends React.Component {
       mergedArrayData: [],
       feedbackToUser: '',            
     };
-
     this.handleInputChange   = this.handleInputChange.bind(this);
     this.renderAttributes  = this.renderAttributes.bind(this);
     this.handleSubmitAttributes= this.handleSubmitAttributes.bind(this);
   }
-  /**
-  *
-  *
-  */
+
+
   async componentWillMount(){
     this.setState({
       orgUnitId: this.props.orgUnitId,
       OrgUnitName: this.props.OrgUnitName
     });
-
     let self = this;
     await getAttributes().then((response) => {
       self.setState({
         attributes : response.data.trackedEntityAttributes
       }); 
     }).catch(error => this.setState({error: true}));
-
     await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
       self.setState({
         dataStoreNamespace : response.data.attributes      
       }); 
     }).catch(error => this.setState({error: true}));
-
     // Merge two array
     const mergeById = (jsonPayload1, jsonPayload2) =>
     jsonPayload1.map(itm => ({
@@ -69,7 +64,6 @@ class Attributes extends React.Component {
       this.setState({mergedArrayData: mergedArray});
     } 
   }
-
 
   
   giveFeedbackToUser = (feedback) => {
@@ -91,6 +85,12 @@ class Attributes extends React.Component {
   }
 
 
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
+  }
+
+
   /**
   * {id, value} returns the element id and input value
   * {attributes} store the current state elements array
@@ -99,13 +99,11 @@ class Attributes extends React.Component {
   * if {attributeValues} is empty, develop custom payload from configuration `config.metaAttributeName` & `config.metaAttributeUId` 
   */
   handleInputChange(e) {    
-    
     const {id, value}  = e.target;
     let {attributes, dataStoreNamespace, mergedArrayData} = this.state;
     const targetIndex  = mergedArrayData.findIndex(datum => {
       return datum.id === id;
     });
-
     if(targetIndex !== -1){ 
       if(mergedArrayData[targetIndex].sourceCode !== '' || typeof mergedArrayData[targetIndex].sourceCode !== 'undefined' ){
         mergedArrayData[targetIndex].sourceCode = value;
@@ -122,13 +120,9 @@ class Attributes extends React.Component {
       mergedArrayData[targetIndex].sourceCode=value;
       this.setState({mergedArrayData});
     }
-    // console.log("mergedArrayData: ", mergedArrayData);
   }
-  /**
-  *
-  *
-  *
-  */
+ 
+
   async handleSubmitAttributes(e) {
     this.setState({ 
       loading: true,
@@ -141,7 +135,6 @@ class Attributes extends React.Component {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
         let len = elementObj.length;
-
         for( let j=0; j < 1; j++  ) {
           await ( async ([columnName, columnValue], index ) => {
             if(updateArray[i].value !== '' ){
@@ -151,8 +144,7 @@ class Attributes extends React.Component {
                 updateAttributePayload.push({"id": customAttributeString.id,"name": customAttributeString.name,"sourceCode": updateArray[i].value,"code": customAttributeString.code});                
             }    
           } ) (elementObj[j], {}, j);
-        } 
-        
+        }  
       } ) ( updateArray[i], {}, i );
     }
     // Find the setting key exist or not
@@ -162,10 +154,8 @@ class Attributes extends React.Component {
     }).catch(error => {
       console.log("error.response.data.httpStatusCode: ", error.response.data.httpStatusCode);
     });
-
     // If there is no key exist then create first then add settings data
     if (typeof dataStoreNameSpace === 'undefined') {
-
       await createDateStoreNameSpace('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify(this.state.orgUnitId)).then(info=>{
           console.log("Info: ", info.data);
       });
@@ -182,9 +172,7 @@ class Attributes extends React.Component {
         console.log({error}); 
         this.giveFeedbackToUser('fail')
       });
-
     } else {
-
       dataStoreNameSpace.attributes = updateAttributePayload; // update existing attributes
       let finalPayload = dataStoreNameSpace;
       await metaDataUpdate('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify(finalPayload) )
@@ -201,8 +189,9 @@ class Attributes extends React.Component {
         this.giveFeedbackToUser('fail')
       });
     }
-   
   }
+
+
   renderAttributes() {
     const classes = this.props;
     let {attributes, dataStoreNamespace, mergedArrayData} = this.state;
@@ -247,25 +236,25 @@ class Attributes extends React.Component {
             {content}             
           </TableBody>          
         </Table>
-        <input type="submit" value="Save Attributes" style={styleProps.styles.submitButton}/>
         </form> 
         {spinner}
       </div>
     )
   }
   
+
   render(){
-    
     const attributesList = this.renderAttributes();
-    
     return (
       <div>
         {this.state.feedbackToUser}
         {attributesList}
       </div>
     );
-
-  }          
+  } 
+  
+  
 }
+
 
 export default Attributes;
