@@ -4,12 +4,9 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import swal from 'sweetalert';
-import LinearProgress from '../ui/LinearProgress';
 import * as styleProps  from '../ui/Styles';
 import * as config  from '../../config/Config';
+import { Card, AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
 import { 
     metaDataUpdate,
     getAttributeDetails,
@@ -23,12 +20,15 @@ class AttributesTable extends React.Component {
       value   : '',
       loading : false,
       attributes: [],
+      feedbackToUser: '',
     };
-
     this.handleInputChange = this.handleInputChange.bind(this);
     this.renderDataElements        = this.renderDataElements.bind(this);
     this.handleSubmitAttributes= this.handleSubmitAttributes.bind(this);
+    this.updateMapping = this.updateMapping.bind(this);
   }
+
+
   componentDidMount(){
     let self = this;
       getAttributes().then((response) => {
@@ -37,8 +37,9 @@ class AttributesTable extends React.Component {
         }); 
       }).catch(error => this.setState({error: true}));
   }
+
+
   handleInputChange(e) {
-    
     /**
     * {id, value} returns the element id and input value
     * {attributes} store the current state elements array
@@ -51,7 +52,6 @@ class AttributesTable extends React.Component {
     const targetIndex  = attributes.findIndex(datum => {
       return datum.id === id;
     });
-
     if(targetIndex !== -1){      
       if(attributes[targetIndex].attributeValues.length > 0 ){
         attributes[targetIndex].attributeValues[0].value = value;
@@ -62,9 +62,35 @@ class AttributesTable extends React.Component {
         attributes[targetIndex].code = value;
         this.setState({attributes});
       }
-     
     }
   }
+
+
+ giveFeedbackToUser = (feedback) => {
+    if (feedback==='success') {
+      this.setState({feedbackToUser: 
+        <AlertBar duration={8000} icon success className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+          Mapping was successfully updated
+        </AlertBar>
+      })
+    }
+    else {
+      this.setState({
+        feedbackToUser:
+          <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+            Mapping could not be updated
+          </AlertBar>
+      });
+    } 
+  }
+
+
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
+  }
+
+
   renderDataElements() {
     const classes = this.props;
     const {attributes} = this.state;
@@ -84,7 +110,7 @@ class AttributesTable extends React.Component {
       });
       let spinner;
       if(this.state.loading){
-        spinner = <LinearProgress />
+        spinner = <CircularLoader className="circularLoader"/>
       }
       return (
         <div>
@@ -104,119 +130,94 @@ class AttributesTable extends React.Component {
               {content}             
             </TableBody>          
           </Table>
-          <input type="submit" value="Save Attributes" style={styleProps.styles.submitButton}/>
           </form> 
           {spinner}
         </div>
       )
   }
+
+
   handleSubmitAttributes(e) {
-    this.setState({ // need to upgrade this logic
-      loading: true,
+    e.preventDefault()  
+    let updateArray = e.target;  
+    this.setState({
+      feedbackToUser:
+        <Modal small open>
+          <Modal.Content>Are you sure you want to upload mapping?</Modal.Content>
+          <Modal.Actions>
+            <ButtonStrip>
+              <Button onClick={() => this.setState({ feedbackToUser: '' })}>Cancel</Button>
+              <Button primary onClick={() => this.updateMapping(updateArray)}>Confirm</Button>
+            </ButtonStrip>
+          </Modal.Actions>                
+        </Modal>
     });
-    e.preventDefault();
-    let updateArray = e.target;   
+  } 
+  
 
-    swal({
-      title: "Are you sure want to update?",
-      icon: "warning",
-      buttons: true,
-      dangerMode: true,
-    })
-    .then((willUpdate) => {    
-      if (willUpdate) {        
-        
-        /**
-        * Iterate {updateArray} that contains the updated values from settings input
-        * {getAttributeDetails} returns the updated attributes detail
-        * {customAttributeString} store the data element detail information
-        * {attributeId} returns whether the existing meta attribute exist or not. If do not exist then create the `attribute` array from static configuration `config.metaAttributeUId` 
-        * {jsonPayload} returns the final payload to update the meta attributes 
-        * {metaDataUpdate} does the `PUT` operations and return messages
-        * @returns j-success message and close the loader
-        */
-
-        for (let i = 0; i < updateArray.length-1; i++) { //updateArray.length-1
-          let j=0;
-          if(/*updateArray[i].value !== '' &&*/ updateArray[i].value !== 'true' ){
-
-            getAttributeDetails(updateArray[i].id).then((response) => {
-                let customAttributeString = response.data;
-                /*let attributeId = customAttributeString.attributeValues.map( val => val.attribute.id);
-                if(typeof attributeId[0] !== 'undefined'){
-                  attributeId = attributeId[0];
-                } else {
-                  attributeId = config.metaAttributeUId;
+  updateMapping(updateArray) {
+    this.setState({
+      loading: true, feedbackToUser: '',
+    });
+    for (let i = 0; i < updateArray.length-1; i++) { 
+      let j=0;
+      if(updateArray[i].value !== 'true' ) {
+        getAttributeDetails(updateArray[i].id).then((response) => {
+          let customAttributeString = response.data;
+          let jsonPayload = "";
+          if(typeof customAttributeString.optionSet !=='undefined' ){
+            jsonPayload = JSON.stringify({
+              "name": customAttributeString.name,
+              "shortName": customAttributeString.shortName,
+              "aggregationType": customAttributeString.aggregationType,
+              "domainType": customAttributeString.domainType,
+              "valueType": customAttributeString.valueType,
+              "code": updateArray[i].value,
+              "optionSet": {
+                    "id": customAttributeString.optionSet.id
                 }
-                 
-                let jsonPayload = JSON.stringify({"name": customAttributeString.name,"shortName": customAttributeString.shortName,"aggregationType": customAttributeString.aggregationType,"domainType": customAttributeString.domainType,"valueType": customAttributeString.valueType,"attributeValues": [{"value": updateArray[i].value,"attribute": { "id": attributeId }}]});*/
-                let jsonPayload = "";
-                if(typeof customAttributeString.optionSet !=='undefined' ){
-
-                  jsonPayload = JSON.stringify({
-                    "name": customAttributeString.name,
-                    "shortName": customAttributeString.shortName,
-                    "aggregationType": customAttributeString.aggregationType,
-                    "domainType": customAttributeString.domainType,
-                    "valueType": customAttributeString.valueType,
-                    "code": updateArray[i].value,
-                    "optionSet": {
-                          "id": customAttributeString.optionSet.id
-                      }
-                  });
-
-                } else {
-
-                  jsonPayload = JSON.stringify({
-                    "name": customAttributeString.name,
-                    "shortName": customAttributeString.shortName,
-                    "aggregationType": customAttributeString.aggregationType,
-                    "domainType": customAttributeString.domainType,
-                    "valueType": customAttributeString.valueType,
-                    "code": updateArray[i].value
-                  });
-                }  
-                //console.log("jsonPayload Attribute: ", jsonPayload);
-                metaDataUpdate('api/trackedEntityAttributes/'+updateArray[i].id, jsonPayload)
-                  .then((response) => {
-                    console.log("Console results: ", response.data);
-                });
-                if(i === j ){
-                  this.setState({
-                    loading: false,
-                  });
-                  swal("Successfully updated meta attribute!", {
-                      icon: "success",
-                  });
-                }  
-              });
-              j++;            
-          }        
-        }
-
-      } else {
-        swal({
-            title: "Your data is safe!",
-            icon: "success",
+            });
+          } 
+          else {
+            jsonPayload = JSON.stringify({
+              "name": customAttributeString.name,
+              "shortName": customAttributeString.shortName,
+              "aggregationType": customAttributeString.aggregationType,
+              "domainType": customAttributeString.domainType,
+              "valueType": customAttributeString.valueType,
+              "code": updateArray[i].value
+            });
+          }  
+          metaDataUpdate('api/trackedEntityAttributes/'+updateArray[i].id, jsonPayload)
+            .then((response) => {
+              console.log("Console results: ", response.data);
+          });
+          if(i === j ){
+            this.setState({
+              loading: false,
+            });
+            this.giveFeedbackToUser('success')
+            return
+          }  
         });
-        this.setState({
-          loading: false,
-        });
-      }
-    });
-    
+        j++; 
+      }        
+    }
   }
+
+
   render(){
-    
     const dataElementList = this.renderDataElements();
-    
     return (
       <div>
+        {this.state.feedbackToUser}
         {dataElementList}
       </div>
     );
-
-  }          
+  }
+  
+  
 }
+
 
 export default AttributesTable;

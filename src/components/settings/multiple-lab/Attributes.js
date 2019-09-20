@@ -5,12 +5,9 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import swal from 'sweetalert';
-import LinearProgress from '../../ui/LinearProgress';
 import * as styleProps  from '../../ui/Styles';
 import * as config  from '../../../config/Config';
-import { Card } from '@dhis2/ui-core';
+import { Card, AlertBar, CircularLoader } from '@dhis2/ui-core';
 import { 
     metaDataUpdate,
     getAttributeDetails,
@@ -18,6 +15,7 @@ import {
     getDataStoreNameSpace,
     createDateStoreNameSpace
 } from '../../api/API';
+
 
 class Attributes extends React.Component {
    constructor(props) {
@@ -30,35 +28,30 @@ class Attributes extends React.Component {
       OrgUnitName: "",
       dataStoreNamespace: [],
       mergedArrayData: [],
+      feedbackToUser: '',            
     };
-
     this.handleInputChange   = this.handleInputChange.bind(this);
     this.renderAttributes  = this.renderAttributes.bind(this);
     this.handleSubmitAttributes= this.handleSubmitAttributes.bind(this);
   }
-  /**
-  *
-  *
-  */
+
+
   async componentWillMount(){
     this.setState({
       orgUnitId: this.props.orgUnitId,
       OrgUnitName: this.props.OrgUnitName
     });
-
     let self = this;
     await getAttributes().then((response) => {
       self.setState({
         attributes : response.data.trackedEntityAttributes
       }); 
     }).catch(error => this.setState({error: true}));
-
     await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
       self.setState({
         dataStoreNamespace : response.data.attributes      
       }); 
     }).catch(error => this.setState({error: true}));
-
     // Merge two array
     const mergeById = (jsonPayload1, jsonPayload2) =>
     jsonPayload1.map(itm => ({
@@ -70,10 +63,34 @@ class Attributes extends React.Component {
       mergedArray = mergeById(this.state.attributes, this.state.dataStoreNamespace);
       this.setState({mergedArrayData: mergedArray});
     } 
-    
-    
-
   }
+
+  
+  giveFeedbackToUser = (feedback) => {
+    if (feedback==='success') {
+      this.setState({feedbackToUser: 
+        <AlertBar duration={8000} icon success className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+          Mapping was successfully updated
+        </AlertBar>
+      })
+    }
+    else {
+      this.setState({
+        feedbackToUser:
+          <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+            Mapping could not be updated
+          </AlertBar>
+        });
+    } 
+  }
+
+
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
+  }
+
+
   /**
   * {id, value} returns the element id and input value
   * {attributes} store the current state elements array
@@ -82,13 +99,11 @@ class Attributes extends React.Component {
   * if {attributeValues} is empty, develop custom payload from configuration `config.metaAttributeName` & `config.metaAttributeUId` 
   */
   handleInputChange(e) {    
-    
     const {id, value}  = e.target;
     let {attributes, dataStoreNamespace, mergedArrayData} = this.state;
     const targetIndex  = mergedArrayData.findIndex(datum => {
       return datum.id === id;
     });
-
     if(targetIndex !== -1){ 
       if(mergedArrayData[targetIndex].sourceCode !== '' || typeof mergedArrayData[targetIndex].sourceCode !== 'undefined' ){
         mergedArrayData[targetIndex].sourceCode = value;
@@ -105,13 +120,9 @@ class Attributes extends React.Component {
       mergedArrayData[targetIndex].sourceCode=value;
       this.setState({mergedArrayData});
     }
-    // console.log("mergedArrayData: ", mergedArrayData);
   }
-  /**
-  *
-  *
-  *
-  */
+ 
+
   async handleSubmitAttributes(e) {
     this.setState({ 
       loading: true,
@@ -124,7 +135,6 @@ class Attributes extends React.Component {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
         let len = elementObj.length;
-
         for( let j=0; j < 1; j++  ) {
           await ( async ([columnName, columnValue], index ) => {
             if(updateArray[i].value !== '' ){
@@ -134,8 +144,7 @@ class Attributes extends React.Component {
                 updateAttributePayload.push({"id": customAttributeString.id,"name": customAttributeString.name,"sourceCode": updateArray[i].value,"code": customAttributeString.code});                
             }    
           } ) (elementObj[j], {}, j);
-        } 
-        
+        }  
       } ) ( updateArray[i], {}, i );
     }
     // Find the setting key exist or not
@@ -145,10 +154,8 @@ class Attributes extends React.Component {
     }).catch(error => {
       console.log("error.response.data.httpStatusCode: ", error.response.data.httpStatusCode);
     });
-
     // If there is no key exist then create first then add settings data
     if (typeof dataStoreNameSpace === 'undefined') {
-
       await createDateStoreNameSpace('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify(this.state.orgUnitId)).then(info=>{
           console.log("Info: ", info.data);
       });
@@ -158,20 +165,14 @@ class Attributes extends React.Component {
           this.setState({
             loading: false,
           });
-          swal("Setting information was updated successfully!", {
-              icon: "success",
-          });
+          this.giveFeedbackToUser('success')
         }
         console.log("Console results: ", response.data);
       }).catch(error => { 
         console.log({error}); 
-        swal("Sorry! Unable to update setting information!", {
-              icon: "error",
-        });
+        this.giveFeedbackToUser('fail')
       });
-
     } else {
-
       dataStoreNameSpace.attributes = updateAttributePayload; // update existing attributes
       let finalPayload = dataStoreNameSpace;
       await metaDataUpdate('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify(finalPayload) )
@@ -180,20 +181,17 @@ class Attributes extends React.Component {
           this.setState({
             loading: false,
           });
-          swal("Setting information was updated successfully!", {
-              icon: "success",
-          });
+          this.giveFeedbackToUser('success')
         }
         console.log("Console results: ", response.data);
       }).catch(error => { 
         console.log({error}); 
-        swal("Sorry! Unable to update setting information!", {
-              icon: "error",
-        });
+        this.giveFeedbackToUser('fail')
       });
     }
-   
   }
+
+
   renderAttributes() {
     const classes = this.props;
     let {attributes, dataStoreNamespace, mergedArrayData} = this.state;
@@ -215,7 +213,7 @@ class Attributes extends React.Component {
     });
     let spinner;
     if(this.state.loading){
-      spinner = <LinearProgress />
+      spinner = <CircularLoader className="circularLoader"/>
     }
     return (
       <div>
@@ -238,24 +236,25 @@ class Attributes extends React.Component {
             {content}             
           </TableBody>          
         </Table>
-        <input type="submit" value="Save Attributes" style={styleProps.styles.submitButton}/>
         </form> 
         {spinner}
       </div>
     )
   }
   
+
   render(){
-    
     const attributesList = this.renderAttributes();
-    
     return (
       <div>
+        {this.state.feedbackToUser}
         {attributesList}
       </div>
     );
-
-  }          
+  } 
+  
+  
 }
+
 
 export default Attributes;

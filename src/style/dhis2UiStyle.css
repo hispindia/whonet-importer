@@ -54,5 +54,14 @@
  .importPreview {
      padding: 1%; 
  }
-
- 
+ .alertBar {
+    bottom: 0;
+    position: 'fixed';
+    width: '100%';
+ }
+.circularLoader {
+    position: absolute !important; 
+    z-index: 2;
+    left: 50%;
+    bottom: 50%;
+}

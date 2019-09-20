@@ -4,13 +4,9 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import swal from 'sweetalert';
-import LinearProgress from '../../ui/LinearProgress';
 import * as styleProps  from '../../ui/Styles';
 import * as config  from '../../../config/Config';
-import { Card } from '@dhis2/ui-core';
+import { Card, AlertBar, CircularLoader } from '@dhis2/ui-core';
 import '../../../style/dhis2UiStyle.css';
 import { 
     metaDataUpdate,
@@ -19,6 +15,7 @@ import {
     getDataStoreNameSpace,
     createDateStoreNameSpace
 } from '../../api/API';
+
 
 class DataElementsTable extends React.Component {
    constructor(props) {
@@ -31,35 +28,31 @@ class DataElementsTable extends React.Component {
       OrgUnitName: "",
       dataStoreNamespace: [],
       mergedArrayData: [],
+      feedbackToUser: '',      
     };
-
     this.handleInputChange   = this.handleInputChange.bind(this);
     this.renderDataElements  = this.renderDataElements.bind(this);
     this.handleSubmitElements= this.handleSubmitElements.bind(this);
+    this.saveMapping = this.saveMapping.bind(this);
   }
-  /**
-  *
-  *
-  */
+ 
+
   async componentWillMount(){
     this.setState({
       orgUnitId: this.props.orgUnitId,
       OrgUnitName: this.props.OrgUnitName
     });
-
     let self = this;
     await getPrograms().then((response) => {
       self.setState({
         dataElements : response.data.programs[0].programStages[0].programStageDataElements       
       }); 
     }).catch(error => this.setState({error: true}));
-
     await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
       self.setState({
         dataStoreNamespace : response.data.elements      
       }); 
     }).catch(error => this.setState({error: true}));
-
     // Merge two array
     const mergeById = (jsonPayload1, jsonPayload2) =>
     jsonPayload1.map(itm => ({
@@ -70,8 +63,34 @@ class DataElementsTable extends React.Component {
       let mergedArray = mergeById(this.state.dataElements, this.state.dataStoreNamespace);
       this.setState({mergedArrayData: mergedArray});
     }
-
   }
+
+
+  giveFeedbackToUser = (feedback) => {
+    if (feedback==='success') {
+      this.setState({feedbackToUser: 
+        <AlertBar duration={8000} icon success className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+          Mapping was successfully updated
+        </AlertBar>
+      })
+    }
+    else {
+      this.setState({
+        feedbackToUser:
+          <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+            Mapping could not be updated
+          </AlertBar>
+        });
+    } 
+  }
+  
+
+  saveMapping() {
+    let myForm = document.getElementById('whonetsetting');
+    myForm.dispatchEvent(new Event('submit'))
+  }
+
+
   /**
   * {id, value} returns the element id and input value
   * {dataElements} store the current state elements array
@@ -80,10 +99,8 @@ class DataElementsTable extends React.Component {
   * if {attributeValues} is empty, develop custom payload from configuration `config.metaAttributeName` & `config.metaAttributeUId` 
   */
   handleInputChange(e) {    
-    
     const {id, value}  = e.target;
     let {dataElements, dataStoreNamespace, mergedArrayData} = this.state;
-    
     const targetIndex  = mergedArrayData.findIndex(datum => {
       return datum.id === id;
     });
@@ -103,14 +120,11 @@ class DataElementsTable extends React.Component {
       mergedArrayData[targetIndex].sourceCode=value;
       this.setState({mergedArrayData});
     }
-    // console.log("mergedArrayData: ", mergedArrayData);
   }
-  /**
-  *
-  *
-  *
-  */
+ 
+
   async handleSubmitElements(e) {
+    console.log("handleSubmitElements")
     this.setState({ 
       loading: true,
     });
@@ -122,17 +136,11 @@ class DataElementsTable extends React.Component {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
         let len = elementObj.length;
-
         for( let j=0; j < 1; j++  ) {
           await ( async ([columnName, columnValue], index ) => {
             if(updateArray[i].value !== '' ){
               const result= await getElementDetails(updateArray[i].id);
                 let customElementString = result.data;
-
-                // This json payload is for dataelements code updates
-                //let jsonPayload = JSON.stringify({"name": customElementString.name,"shortName": customElementString.shortName,"aggregationType": customElementString.aggregationType,"domainType": customElementString.domainType,"valueType": customElementString.valueType,"code": updateArray[i].value});
-                
-                // Array for datastore update
                 updateElementsPayload.push({
                   "id": customElementString.id,
                   "name": customElementString.name,
@@ -142,7 +150,6 @@ class DataElementsTable extends React.Component {
             }    
           } ) (elementObj[j], {}, j);
         } 
-        
       } ) ( updateArray[i], {}, i );
     }
     // Find the setting key exist or not
@@ -163,18 +170,13 @@ class DataElementsTable extends React.Component {
           this.setState({
             loading: false,
           });
-          swal("Setting information was updated successfully!", {
-              icon: "success",
-          });
+          this.giveFeedbackToUser('success')
         }
         console.log("Console results: ", response.data);
       }).catch(error => { 
         console.log({error}); 
-        swal("Sorry! Unable to update setting information!", {
-              icon: "error",
-        });
+        this.giveFeedbackToUser('fail')
       });
-
     } else {
       dataStoreNameSpace.elements = updateElementsPayload; // update existing elements
       let finalPayload = dataStoreNameSpace;
@@ -184,24 +186,20 @@ class DataElementsTable extends React.Component {
           this.setState({
             loading: false,
           });
-          swal("Setting information was updated successfully!", {
-              icon: "success",
-          });
+          this.giveFeedbackToUser('success')
         }
         console.log("Console results: ", response.data);
       }).catch(error => { 
         console.log({error}); 
-        swal("Sorry! Unable to update setting information!", {
-              icon: "error",
-        });
+        this.giveFeedbackToUser('fail')
       });
     }
-   
   }
+
+
   renderDataElements() {
     const classes = this.props;
     let {dataElements, dataStoreNamespace, mergedArrayData} = this.state;
-    
     let content = mergedArrayData.map(datum => {
       return (
         <TableRow key={datum.dataElement.id}>
@@ -220,35 +218,9 @@ class DataElementsTable extends React.Component {
     });
     let spinner;
     if(this.state.loading){
-      spinner = <LinearProgress />
+      spinner = <CircularLoader className="circularLoader"/>
     }
     return (
-      /*
-      <Paper className={classes.root}  style={styleProps.styles.tableScroll}>
-        <form onSubmit={(e) => this.handleSubmitElements(e)} id="whonetsetting">
-        <Table className={classes.table}>
-          <TableHead>
-            <TableRow>
-              <TableCell style={styleProps.styles.tableHeader}> 
-                <strong><h3> DHIS2 data element name </h3></strong>
-              </TableCell>
-              <TableCell style={styleProps.styles.tableHeader}> 
-                <strong><h3> WHONET data element name </h3></strong>
-              </TableCell>
-              <TableCell style={styleProps.styles.tableHeader}> 
-                <strong><h3> ORG UNIT CODES </h3></strong> 
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>            
-            {content}             
-          </TableBody>          
-        </Table>
-        <input type="submit" value="Save Elements" style={styleProps.styles.submitButton}/>
-        </form> 
-        {spinner}
-      </Paper>
-      */
       <div>
           <form onSubmit={(e) => this.handleSubmitElements(e)} id="whonetsetting">
           <Table className={classes.table}>
@@ -269,24 +241,23 @@ class DataElementsTable extends React.Component {
               {content}             
             </TableBody>          
           </Table>
-          <input type="submit" value="Save Elements" style={styleProps.styles.submitButton}/>
           </form> 
           {spinner}
       </div>
     )
   }
   
+
   render(){
-    
     const dataElementList = this.renderDataElements();
-    
     return (
       <div>
+        {this.state.feedbackToUser}
         {dataElementList}
       </div>
     );
-
   }          
 }
+
 
 export default DataElementsTable;
