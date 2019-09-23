@@ -297,12 +297,11 @@ class WHONETFileReader extends React.Component {
                 eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
               }
 
+              // Attributes filter from data store
               attributesFilterResult = this.state.dataStoreNamespaceAttributes.filter(function (attribute) {
                 return attribute.sourceCode === columnName;
               });
             }
-
-
 
             if (attributesFilterResult.length >= 1) {
               let attributeValue;
@@ -319,7 +318,7 @@ class WHONETFileReader extends React.Component {
                 attributeValue = columnValue.replace(/[=><_]/gi, '');
               }
 
-            // Options checking for data elements
+            // Options checking for attributes
               await getAttributeDetails(attributeId).then((attributeResponse) => {
                 
                 if(typeof attributeResponse!== 'undefined' && typeof attributeResponse.data.optionSet !== 'undefined'){
@@ -359,9 +358,8 @@ class WHONETFileReader extends React.Component {
                 }  
                 
               }); // end await 
-
               
-
+              // Duplicate Patient ID checking
               if (columnName === config.patientIdColumn) {
                 const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                 duplicate[index] = result;
@@ -377,15 +375,13 @@ class WHONETFileReader extends React.Component {
                   });
                 }
               }
-              // console.log("duplicateStatus-outer-if: ", this.state.duplicateStatus);
-
             }
             return duplicate;
           })(csvObj[j], {}, j);
         }
 
         /**
-        * Generates AMR Id consisting of OU code and a random integer.
+        * Generates AMR Id by the combination of OU code and a random integer value.
         * @eventsPayloadUpdated returns updated json payload with dynamically generated amrid
         */
         let orgUnitCode;
@@ -404,7 +400,6 @@ class WHONETFileReader extends React.Component {
 
 
         /**
-        * Generates AMR Id consisting of OU code and a random integer.
         * @{Object.keys(teiPayload)} checkes the json payload length
         * @{teiPayloadString} returns json payload with non-duplicate data to create new entity
         */
