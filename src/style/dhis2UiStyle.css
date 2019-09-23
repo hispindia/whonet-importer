@@ -3,7 +3,7 @@
     max-width: 100%;
     display: flex;
     flex-direction: row; 
-    background-color: rgb(240, 240, 240);
+    /*background-color: rgb(240, 240, 240);*/
 }
 .orgUnitTreeCard {
     padding: 1%;
@@ -14,7 +14,7 @@
 .whoNetController {
     flex-grow: 1;
     width: auto;
-    /*max-width: 75%;*/
+    max-width: 92%;
 }
 .fileUploadCard {
     -moz-box-sizing: border-box;
