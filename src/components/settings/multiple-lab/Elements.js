@@ -124,7 +124,6 @@ class DataElementsTable extends React.Component {
  
 
   async handleSubmitElements(e) {
-    console.log("handleSubmitElements")
     this.setState({ 
       loading: true,
     });
