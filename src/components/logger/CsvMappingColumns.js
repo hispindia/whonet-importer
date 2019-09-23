@@ -112,10 +112,10 @@ export default class CsvMappingColumns extends React.Component {
             <TableHead>
               <TableRow>
                 <TableCell style={styleProps.styles.tableHeader}> 
-                  <strong><h3>Column number </h3></strong>
+                  <strong><h3>File column nr</h3></strong>
                 </TableCell>
                 <TableCell style={styleProps.styles.tableHeader}> 
-                  <strong><h3>File column head </h3></strong>
+                  <strong><h3>File column header name </h3></strong>
                 </TableCell>
                 <TableCell style={styleProps.styles.tableHeader}> 
                   <strong><h3> DHIS2 data field name </h3></strong>

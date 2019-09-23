@@ -19,6 +19,7 @@ import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
   getAttributes,
+  getAttributeDetails,
   isDuplicate,
   createTrackedEntity,
   checkOrgUnitInProgram,
@@ -235,11 +236,14 @@ class WHONETFileReader extends React.Component {
               });
 
             } else {
+
+              // Elements filter from data store
               elementsFilterResult = dataStoreNamespaceElements.filter((element) => {
                 return element.sourceCode === columnName;
               });
 
               if (elementsFilterResult.length >= 1) {
+
                 let matchResult = columnValue.match(/\//g);
                 if (matchResult !== null && matchResult.length === 2) {
                   elementValue = formatDate(columnValue);
@@ -293,12 +297,11 @@ class WHONETFileReader extends React.Component {
                 eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
               }
 
+              // Attributes filter from data store
               attributesFilterResult = this.state.dataStoreNamespaceAttributes.filter(function (attribute) {
                 return attribute.sourceCode === columnName;
               });
             }
-
-
 
             if (attributesFilterResult.length >= 1) {
               let attributeValue;
@@ -315,11 +318,48 @@ class WHONETFileReader extends React.Component {
                 attributeValue = columnValue.replace(/[=><_]/gi, '');
               }
 
-              teiPayload[index] = {
-                "attribute": attributeId,
-                "value": attributeValue
-              };
+            // Options checking for attributes
+              await getAttributeDetails(attributeId).then((attributeResponse) => {
+                
+                if(typeof attributeResponse!== 'undefined' && typeof attributeResponse.data.optionSet !== 'undefined'){
 
+                  let attributeId = attributeResponse.data.id;
+                  let optionSetId = attributeResponse.data.optionSet;
+                  
+                // Get option sets with all options
+                  getOptionSetDetails(optionSetId.id).then((osResponse) => {
+                    if(typeof osResponse!== 'undefined'){
+
+                      let optionsDetail = osResponse.data.options;
+                      for (let i = 0; i < optionsDetail.length; i++) {
+
+                        let optionName = optionsDetail[i].name;
+                // Options map filter from data store 
+                        optionsFilterResult = this.state.dataStoreNamespaceOptions.filter(function(option) {
+                          return option.mapCode === columnValue;
+                        });
+                        if(optionsFilterResult.length >= 1){
+                  
+                // Set option value as option name in the attributes       
+                          teiPayload[index] = {
+                            "attribute": attributeId,
+                            "value": optionsFilterResult[0].name
+                          }; 
+                        }
+                      }
+                    } // end of osResponse
+                  });                                  
+                    
+                } else { // if this element has no option set, the value will be the excel/csv cell value
+                  teiPayload[index] = {
+                    "attribute": attributeId,
+                    "value": attributeValue
+                  };
+                }  
+                
+              }); // end await 
+              
+              // Duplicate Patient ID checking
               if (columnName === config.patientIdColumn) {
                 const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                 duplicate[index] = result;
@@ -335,15 +375,13 @@ class WHONETFileReader extends React.Component {
                   });
                 }
               }
-              // console.log("duplicateStatus-outer-if: ", this.state.duplicateStatus);
-
             }
             return duplicate;
           })(csvObj[j], {}, j);
         }
 
         /**
-        * Generates AMR Id consisting of OU code and a random integer.
+        * Generates AMR Id by the combination of OU code and a random integer value.
         * @eventsPayloadUpdated returns updated json payload with dynamically generated amrid
         */
         let orgUnitCode;
@@ -362,7 +400,6 @@ class WHONETFileReader extends React.Component {
 
 
         /**
-        * Generates AMR Id consisting of OU code and a random integer.
         * @{Object.keys(teiPayload)} checkes the json payload length
         * @{teiPayloadString} returns json payload with non-duplicate data to create new entity
         */

@@ -72,8 +72,10 @@ export const createTrackedEntity = async (trackedEntityJson) => {
     }) 
 };
 
+/**
+* @getPrograms() returns all the programs with programStageDataElements
+*/
 export const getPrograms = async () => {	
-    //,attributeValues[value,attribute[id,name]]
     return await get('api/programs.json?filter=id:eq:'+config.programId+'&fields=id,name,programStages[id,name,programStageDataElements[dataElement[id,name,code]]]&paging=false')
     	.then(function (response) {    		
 			return response;
@@ -83,6 +85,9 @@ export const getPrograms = async () => {
 		});
 };
 
+/**
+* @getAttributes() returns all the TEI attributes with attributes values
+*/
 export const getAttributes = async () => {
     return await get('api/trackedEntityAttributes.json?fields=id,name,code,attributeValues[value,attribute]')
     	.then(function (response) {    		
@@ -93,6 +98,9 @@ export const getAttributes = async () => {
 		});
 };
 
+/**
+* @returns list of options from option groups
+*/
 export const getOptionsInOptionGroups = async () => {
     return await get('api/optionGroups/'+config.optionGroupsId+'.json?fields=id,name,code,options[:id,name,code,attributeValues]')
     	.then(function (response) {    		
@@ -103,6 +111,9 @@ export const getOptionsInOptionGroups = async () => {
 		});
 };
 
+/**
+* @getOptionSets return all option sets
+*/
 export const getOptionSets = async () => { 
  
     return await get('api/optionSets?filter=id:neq:hRHti3LG2H9&fields=id,name,code,options[:id,name,code]&paging=false')
@@ -221,6 +232,9 @@ export const getDataStoreNameSpace = async (key) => {
    
 };
 
+/**
+* To create new data store namespace
+*/
 export const createDateStoreNameSpace = async (api, jsonPayload) => {
     return await axios(config.baseUrl+api, {
         method: 'POST',
