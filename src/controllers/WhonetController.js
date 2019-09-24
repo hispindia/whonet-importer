@@ -392,6 +392,7 @@ class WHONETFileReader extends React.Component {
           orgUnitCode = "";
         }
         const getAmrId = await generateAmrId(orgUnitId, orgUnitCode);
+        console.log({getAmrId});
         let amrIdPayload = [{
           "dataElement": config.amrIdDataElement,
           "value": getAmrId
