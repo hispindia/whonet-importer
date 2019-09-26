@@ -13,8 +13,9 @@ import { formatDate } from '../components/helpers/DateFormat';
 import { hash } from '../components/helpers/Hash';
 import LoggerComponent from '../components/logger/LoggerComponent';
 import CsvMappingColumns from '../components/logger/CsvMappingColumns';
+import RequiredColumns from '../components/logger/RequiredColumns';
 import ImportResults from '../components/import-results/ImportResults';
-import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal } from '@dhis2/ui-core';
+import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, Radio } from '@dhis2/ui-core';
 import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
@@ -189,14 +190,14 @@ class WHONETFileReader extends React.Component {
     let trackedEntityJson, eventDate;
     await getDataStoreNameSpace(orgUnitId).then((response) => {
       this.setState({
-        dataStoreNamespaceElements: response.data.elements,
+        dataStoreNamespaceElements  : response.data.elements,
         dataStoreNamespaceAttributes: response.data.attributes,
         dataStoreNamespaceOptions   : response.data.options 
       });
     }).catch(error => this.setState({ error: true }));
-    const dataStoreNamespaceElements = this.state.dataStoreNamespaceElements;
+    const dataStoreNamespaceElements   = this.state.dataStoreNamespaceElements;
     const dataStoreNamespaceAttributes = this.state.dataStoreNamespaceAttributes;
-    const dataStoreNamespaceOptions = this.state.dataStoreNamespaceOptions;
+    const dataStoreNamespaceOptions    = this.state.dataStoreNamespaceOptions;
     const csvLength = csvData.length
     for (let i = 0; i < csvLength - 1; i++) {
 
@@ -239,7 +240,7 @@ class WHONETFileReader extends React.Component {
 
               // Elements filter from data store
               elementsFilterResult = dataStoreNamespaceElements.filter((element) => {
-                return element.sourceCode === columnName;
+                return element.mapCode === columnName;
               });
 
               if (elementsFilterResult.length >= 1) {
@@ -299,7 +300,7 @@ class WHONETFileReader extends React.Component {
 
               // Attributes filter from data store
               attributesFilterResult = this.state.dataStoreNamespaceAttributes.filter(function (attribute) {
-                return attribute.sourceCode === columnName;
+                return attribute.mapCode === columnName;
               });
             }
 
@@ -611,7 +612,7 @@ class WHONETFileReader extends React.Component {
   render() {
     // console.log("CTR: ", this.props.ctr);
 
-    let spinner, modal, userAuthority, teiResponse, logger, multipleLabModal;
+    let spinner, modal, userAuthority, teiResponse, logger, multipleLabModal, requiredColumns;
     /**
     * Linear Loader
     */
@@ -641,8 +642,12 @@ class WHONETFileReader extends React.Component {
     */
     if (Object.keys(this.state.mappingCsvData).length > 0 || Object.entries(this.state.mappingCsvData).length > 0) {
       if (config.settingType === 'multiLab') {
-        //let orgUnitId = document.getElementById('selectedOrgUnitId').value;
+
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={config.settingType} orgUnitId={this.props.orgUnitId} />;
+
+        // Modal open when user select their whonet file
+        requiredColumns = <RequiredColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={config.settingType} orgUnitId={this.props.orgUnitId} isModalOpen='true' handleModal={this.handleMultipleLabSettingModal} />;
+
       } else {
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={config.settingType} />;
       }
@@ -699,7 +704,19 @@ class WHONETFileReader extends React.Component {
                 {helpModal}
               </ButtonStrip>
             </div>
-
+            <h4>Select file type </h4>
+            <Radio
+              label="Whonet file"
+              name="Ex"
+              onChange={function logger(_ref){var target=_ref.target;return console.info("".concat(target.name,": ").concat(target.value))}}
+              value="default"
+            />
+            <Radio
+              label="Lab file"
+              name="Ex"
+              onChange={function logger(_ref){var target=_ref.target;return console.info("".concat(target.name,": ").concat(target.value))}}
+              value="default"
+            />
             <div className="fileUploadCardBottomContent">
               <input
                 className="fileInput"
@@ -718,8 +735,10 @@ class WHONETFileReader extends React.Component {
             {modal}
           </Card>
         </div>
-          {teiResponse}
+        {teiResponse}
+        {requiredColumns}
         {logger}
+
       </div>
 
     );

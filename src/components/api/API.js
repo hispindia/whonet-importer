@@ -214,7 +214,7 @@ export const generateAmrId = async (orgUnitId, orgUnitCode) => {
         options: [`orgUnit=${orgUnitId}`],
       })
     ).then( response =>{
-      if (response.data.events.length !== 0) {
+      if (typeof response.data.events =='undefined' || response.data.events.length == 0) {
         return amrId;
       } 
     });

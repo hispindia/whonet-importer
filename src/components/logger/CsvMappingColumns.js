@@ -37,7 +37,7 @@ export default class CsvMappingColumns extends React.Component {
         let resultMappedElement, attributesFilterResult;             
         if(this.props.settingType === 'multiLab'){
           resultMappedElement = dataStoreNamespaceElements.filter(function(element) {                
-            return element.sourceCode === value[0];                          
+            return element.mapCode === value[0];                          
           });
           // console.log({resultMappedElement});
           attributesFilterResult = this.props.attributes.filter(function(attribute) {
@@ -98,7 +98,7 @@ export default class CsvMappingColumns extends React.Component {
                {result['code']}
               </TableCell>
               <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-               {result['sourceCode']}
+               {result['mapCode']}
               </TableCell>
             </TableRow>
           )
