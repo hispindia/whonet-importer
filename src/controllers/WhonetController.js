@@ -13,9 +13,12 @@ import { formatDate } from '../components/helpers/DateFormat';
 import { hash } from '../components/helpers/Hash';
 import LoggerComponent from '../components/logger/LoggerComponent';
 import CsvMappingColumns from '../components/logger/CsvMappingColumns';
-import RequiredColumns from '../components/logger/RequiredColumns';
 import ImportResults from '../components/import-results/ImportResults';
-import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, Radio } from '@dhis2/ui-core';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal } from '@dhis2/ui-core';
 import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
@@ -70,6 +73,8 @@ class WHONETFileReader extends React.Component {
       settingsDropDown: "",
       feedBackToUser: undefined,
       disableImportButton: true,
+      importFileType: "",
+      fileUploadBoxDisplayState: false,
     };
     this.uploadCSVFile = this.uploadCSVFile.bind(this);
 
@@ -124,27 +129,37 @@ class WHONETFileReader extends React.Component {
     * Update setter 
     */
     if (typeof event.target.files[0] !== 'undefined') {
+      let fileType = this.state.importFileType; 
       let filename = event.target.files[0].name;
       let splittedName = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
-      if (splittedName !== 'csv') {
-        this.giveUserFeedback("Sorry! Please upload correct file format! Accepted file fortmat is CSV. Your selected file name: " + event.target.files[0].name + " Last Modified: " + event.target.files[0].lastModified + " Size: " + event.target.files[0].size + " File type: " + event.target.files[0].type)
-      }
-      this.setState({
-        csvfile: event.target.files[0],
-        fileFormatValue: splittedName
-      });
-      if (!(typeof this.props.orgUnitId === 'undefined' || this.props.orgUnitId === null || this.props.orgUnitId === '')) {
-        this.setState({disableImportButton: false});
-      }
-      /**
-      * @{generateCsvMappingTable} returns the parsed records of selected csv file
-      */
-      Papa.parse(event.target.files[0], {
-        complete: this.generateCsvMappingTable,
-        header: true
-      });
 
-      console.log("Your selected file: ", event.target.files[0].name);
+      if (fileType === ''){
+
+        this.giveUserFeedback(" Please select your import file type. ");
+        
+      } else if (splittedName !== 'csv') {
+
+        this.giveUserFeedback("Sorry! Please upload correct file format! Accepted file fortmat is CSV. Your selected file name: " + event.target.files[0].name + " Last Modified: " + event.target.files[0].lastModified + " Size: " + event.target.files[0].size + " File type: " + event.target.files[0].type);
+
+      } else {
+        this.setState({
+          csvfile: event.target.files[0],
+          fileFormatValue: splittedName
+        });
+        if (!(typeof this.props.orgUnitId === 'undefined' || this.props.orgUnitId === null || this.props.orgUnitId === '')) {
+          this.setState({disableImportButton: false});
+        }
+        /**
+        * @{generateCsvMappingTable} returns the parsed records of selected csv file
+        */
+        Papa.parse(event.target.files[0], {
+          complete: this.generateCsvMappingTable,
+          header: true
+        });
+
+        console.log("Your selected file: ", event.target.files[0].name);
+      }
+      
     }
 
   };
@@ -210,12 +225,14 @@ class WHONETFileReader extends React.Component {
 
           duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
             let elementsFilterResult, attributesFilterResult, optionsFilterResult;
-            if (config.settingType !== 'multiLab') {
+            
+            if (this.state.importFileType == 'whonet') {
 
+              // Elements filter from whonet code
               elementsFilterResult = this.state.dataElements.filter((element) => {
                 return element.dataElement.code === columnName;
               });
-              if (elementsFilterResult.length >= 1) {
+              /*if (elementsFilterResult.length >= 1) {
                 let matchResult = columnValue.match(/\//g);
                 if (matchResult !== null && matchResult.length === 2) {
                   elementValue = formatDate(columnValue);
@@ -227,14 +244,65 @@ class WHONETFileReader extends React.Component {
                   "dataElement": elementId,
                   "value": elementValue
                 };
-              }
-              if (columnName === config.dateColumn) {
-                eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
-              }
+              }*/
+                if (elementsFilterResult.length > 0) {
 
-              let attributesFilterResult = this.state.attributes.filter(function (attribute) {
-                return attribute.code === columnName;
-              });
+                  let matchResult = columnValue.match(/\//g);
+                  if (matchResult !== null && matchResult.length === 2) {
+                    elementValue = formatDate(columnValue);
+                  } else {
+                    elementValue = columnValue.replace(/[=><_]/gi, '');
+                  }
+                  elementId = elementsFilterResult[0].id;
+
+                  // Options checking for data elements
+                  await getElementDetails(elementId).then((deResponse) => {
+                    
+                    if(typeof deResponse!== 'undefined' && typeof deResponse.data.optionSet !== 'undefined'){
+
+                      let updatedElId = deResponse.data.id;
+                      let optionSetId = deResponse.data.optionSet;
+                      
+                    // Get option sets with all options
+                      getOptionSetDetails(optionSetId.id).then((osResponse) => {
+                        if(typeof osResponse!== 'undefined'){
+
+                          let optionsDetail = osResponse.data.options;
+                          for (let i = 0; i < optionsDetail.length; i++) {
+
+                            let optionName = optionsDetail[i].name;
+                    // Options map filter from data store 
+                            optionsFilterResult = this.state.dataStoreNamespaceOptions.filter(function(option) {
+                              return option.mapCode === columnValue;
+                            });
+                            if(optionsFilterResult.length >= 1){
+                      
+                    // Set option value as option name in the data element        
+                              eventsPayload[index] = {
+                                "dataElement": updatedElId, 
+                                "value": optionsFilterResult[0].name
+                              };  
+                            }
+                          }
+                        } // end of osResponse
+                      });                                  
+                        
+                    } else { // if this element has no option set, the value will be the excel/csv cell value
+                        eventsPayload[index] = {
+                          "dataElement": elementId, 
+                          "value": elementValue
+                        };
+                      }                  
+                  }); // end await  
+                }
+                if (columnName === config.dateColumn) {
+                  eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
+                }
+
+                attributesFilterResult = this.state.attributes.filter(function (attribute) {
+
+                  return attribute.code === columnName;
+                });
 
             } else {
 
@@ -393,7 +461,6 @@ class WHONETFileReader extends React.Component {
           orgUnitCode = "";
         }
         const getAmrId = await generateAmrId(orgUnitId, orgUnitCode);
-        console.log({getAmrId});
         let amrIdPayload = [{
           "dataElement": config.amrIdDataElement,
           "value": getAmrId
@@ -495,7 +562,7 @@ class WHONETFileReader extends React.Component {
 
       } catch (err) {
         if (typeof err !== 'undefined') {
-          console.log(err)
+          // console.log(err)
         }
       }
 
@@ -523,7 +590,6 @@ class WHONETFileReader extends React.Component {
   * If does not assign then prevent the file upload
   */
   fileUploadPreAlert = () => {
-
     let orgUnitId = this.props.orgUnitId;
     if (typeof orgUnitId === 'undefined' || orgUnitId === null || orgUnitId === '') {
       this.giveUserFeedback('Please select an org. unit')
@@ -609,6 +675,22 @@ class WHONETFileReader extends React.Component {
     });
   };
 
+  /**
+  * importFileType - set multiLab or whonet file type
+  * fileUploadBoxDisplayState - set true for file upload input box visibility
+  */
+  fileTypeSelection = (event) => {
+    let target = event.target.value;
+    if (target !== '') { 
+      this.setState({
+        importFileType: target,
+        fileUploadBoxDisplayState: true
+      });
+    }
+    
+  };
+
+
   render() {
     // console.log("CTR: ", this.props.ctr);
 
@@ -621,10 +703,11 @@ class WHONETFileReader extends React.Component {
     }
     /**
     * Default modal for Elements and Attributes settings
-    * @settingType-default for super admin & all previleage level access
+    * @settingType-whonet for super admin & all previleage level access
     */
     if (this.state.isSettingModalOpen) {
-      modal = <MappingModal isModalOpen={this.state.isSettingModalOpen} handleModal={this.handleSettingModal} settingType="default" />
+
+      modal = <MappingModal isModalOpen={this.state.isSettingModalOpen} handleModal={this.handleSettingModal} settingType="whonet" />
     }
 
     /**
@@ -638,18 +721,19 @@ class WHONETFileReader extends React.Component {
 
     /**
     * CsvMappingColumns-bottom csv file header mapping
+    * multiLab-returns individual lab setting data mapping
+    * whonet-returns whonet code mapping
     * @returns-logger
     */
     if (Object.keys(this.state.mappingCsvData).length > 0 || Object.entries(this.state.mappingCsvData).length > 0) {
-      if (config.settingType === 'multiLab') {
 
-        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={config.settingType} orgUnitId={this.props.orgUnitId} />;
+      if (this.state.importFileType === 'multiLab') {
 
-        // Modal open when user select their whonet file
-        requiredColumns = <RequiredColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={config.settingType} orgUnitId={this.props.orgUnitId} isModalOpen='true' handleModal={this.handleMultipleLabSettingModal} />;
+        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.state.importFileType} orgUnitId={this.props.orgUnitId} />;
 
-      } else {
-        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={config.settingType} />;
+      } else { 
+
+        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.state.importFileType} />;
       }
 
     }
@@ -688,7 +772,7 @@ class WHONETFileReader extends React.Component {
           </Menu>
         }>
         Mapping setup
-        </DropdownButton>
+      </DropdownButton>
 
     let helpModal = <Button small onClick={this.handleHelpModal} >Help</Button>
 
@@ -705,19 +789,39 @@ class WHONETFileReader extends React.Component {
               </ButtonStrip>
             </div>
             <h4>Select file type </h4>
-            <Radio
+            <FormControl component="fieldset">
+              <RadioGroup aria-label="position" name="position" value={this.value} onChange={this.fileTypeSelection} row>
+                
+                <FormControlLabel
+                  name="whonet"
+                  value="whonet"
+                  control={<Radio color="primary" />}
+                  label="Whonet file"
+                  labelPlacement="end"
+                />
+                <FormControlLabel
+                  name="multiLab"
+                  value="multiLab"
+                  control={<Radio color="primary" />}
+                  label="Lab file"
+                  labelPlacement="end"
+                />
+              </RadioGroup>
+            </FormControl>
+            {/*<Radio
               label="Whonet file"
-              name="Ex"
-              onChange={function logger(_ref){var target=_ref.target;return console.info("".concat(target.name,": ").concat(target.value))}}
-              value="default"
+              name="whonet"
+              onChange={this.fileTypeSelection}
+              value="whonet"
             />
             <Radio
               label="Lab file"
-              name="Ex"
-              onChange={function logger(_ref){var target=_ref.target;return console.info("".concat(target.name,": ").concat(target.value))}}
-              value="default"
-            />
-            <div className="fileUploadCardBottomContent">
+              name="multiLab"
+              onChange={this.fileTypeSelection}
+              value="multiLab"
+            />*/}
+            {this.state.fileUploadBoxDisplayState?
+            <div className="fileUploadCardBottomContent">              
               <input
                 className="fileInput"
                 type="file"
@@ -730,13 +834,13 @@ class WHONETFileReader extends React.Component {
                 accept=".csv"
               />
               <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.disableImportButton}>Import</Button>
-            </div>
+              
+            </div> : null }
 
             {modal}
           </Card>
         </div>
         {teiResponse}
-        {requiredColumns}
         {logger}
 
       </div>
