@@ -134,7 +134,7 @@ export const getElementDetails = async (elementId) => {
 			return response;
 		})
 		.catch(function (error) {
-			console.log(error);
+			console.log("error: ",error);
 		});
 };
 
@@ -244,8 +244,7 @@ export const generateAmrId = async (orgUnitId, orgUnitCode) => {
 * @returns {string} org unit detail
 */
 export const getDataStoreNameSpace = async (key) => {
-  return await get('api/dataStore/whonet/'+key);
-   
+  return await get('api/dataStore/whonet/'+key);   
 };
 
 /**

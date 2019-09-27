@@ -26,17 +26,18 @@ export default class CsvMappingColumns extends React.Component {
   }      
   async componentWillMount(){
     let dsNameSpace = []; 
-    await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
-      this.state.dsNameSpace.push(response.data.elements);
-      this.state.dsNameSpace.push(response.data.attributes);
-      this.state.dsNameSpace.push(response.data.options);
-      this.setState({
-        dsNamespaceElements  : response.data.elements,      
-        dsNamespaceAttributes: response.data.attributes,      
-        dsNamespaceOptions   :  response.data.options      
-      }); 
-    }).catch(error => this.setState({error: true}));
-    
+    if(this.props.settingType === 'multiLab'){
+      await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
+        this.state.dsNameSpace.push(response.data.elements);
+        this.state.dsNameSpace.push(response.data.attributes);
+        this.state.dsNameSpace.push(response.data.options);
+        this.setState({
+          dsNamespaceElements  : response.data.elements,      
+          dsNamespaceAttributes: response.data.attributes,      
+          dsNamespaceOptions   :  response.data.options      
+        }); 
+      }).catch( error => {console.log("error: ", error)});
+    }
   }
 	render () {
     const classes = this.props;

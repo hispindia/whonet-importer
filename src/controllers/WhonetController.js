@@ -120,6 +120,14 @@ class WHONETFileReader extends React.Component {
         });
       }
     });
+
+    /*await getOptions().then((response) => {
+      if (typeof response !== 'undefined') {
+        self.setState({
+          options: response.data.trackedEntityAttributes
+        });
+      }
+    });*/
   }
   handleChangeFileUpload = (event) => {
 
@@ -142,12 +150,18 @@ class WHONETFileReader extends React.Component {
         this.giveUserFeedback("Sorry! Please upload correct file format! Accepted file fortmat is CSV. Your selected file name: " + event.target.files[0].name + " Last Modified: " + event.target.files[0].lastModified + " Size: " + event.target.files[0].size + " File type: " + event.target.files[0].type);
 
       } else {
+
         this.setState({
           csvfile: event.target.files[0],
           fileFormatValue: splittedName
         });
+        
         if (!(typeof this.props.orgUnitId === 'undefined' || this.props.orgUnitId === null || this.props.orgUnitId === '')) {
-          this.setState({disableImportButton: false});
+
+          this.setState({
+            disableImportButton: false
+          });
+
         }
         /**
         * @{generateCsvMappingTable} returns the parsed records of selected csv file
@@ -204,18 +218,22 @@ class WHONETFileReader extends React.Component {
     let orgUnitId = this.props.orgUnitId;
     let trackedEntityJson, eventDate;
 
-    // Data store check
-    await getDataStoreNameSpace(orgUnitId).then((response) => {
-      this.setState({
-        dataStoreNamespaceElements  : response.data.elements,
-        dataStoreNamespaceAttributes: response.data.attributes,
-        dataStoreNamespaceOptions   : response.data.options 
-      });
-    }).catch(error => this.setState({ error: true }));
+    if (this.state.importFileType === 'multiLab') {
+      // Data store check
+      await getDataStoreNameSpace(orgUnitId).then((response) => {
+        this.setState({
+          dataStoreNamespaceElements  : response.data.elements,
+          dataStoreNamespaceAttributes: response.data.attributes,
+          dataStoreNamespaceOptions   : response.data.options 
+        });
+      }).catch(error => this.setState({ error: true }));
+      
+    }
     const dataStoreNamespaceElements   = this.state.dataStoreNamespaceElements;
     const dataStoreNamespaceAttributes = this.state.dataStoreNamespaceAttributes;
     const dataStoreNamespaceOptions    = this.state.dataStoreNamespaceOptions;
-    const csvLength = csvData.length
+
+    const csvLength = csvData.length;
     for (let i = 0; i < csvLength - 1; i++) {
 
       await (async (currentCsvData, duplicateStatus, currentIndex) => {
@@ -261,7 +279,7 @@ class WHONETFileReader extends React.Component {
 
                             let optionName = optionsDetail[i].name;
                     // Options map filter from data store 
-                            optionsFilterResult = this.state.dataStoreNamespaceOptions.filter(function(option) {
+                            /*optionsFilterResult = this.state.dataStoreNamespaceOptions.filter(function(option) {
                               return option.mapCode === columnValue;
                             });
                             if(optionsFilterResult.length >= 1){
@@ -271,7 +289,7 @@ class WHONETFileReader extends React.Component {
                                 "dataElement": updatedElId, 
                                 "value": optionsFilterResult[0].name
                               };  
-                            }
+                            }*/
                           }
                         } // end of osResponse
                       });                                  
