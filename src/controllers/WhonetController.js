@@ -13,11 +13,9 @@ import { hash } from '../components/helpers/Hash';
 import LoggerComponent from '../components/logger/LoggerComponent';
 import CsvMappingColumns from '../components/logger/CsvMappingColumns';
 import ImportResults from '../components/import-results/ImportResults';
-//import Radio from '@material-ui/core/Radio';
-//import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
-import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, Radio, RadioGroup } from '@dhis2/ui-core';
+import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal } from '@dhis2/ui-core';
 import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
@@ -71,7 +69,6 @@ class WHONETFileReader extends React.Component {
       settingsDropDown: "",
       feedBackToUser: undefined,
       disableImportButton: true,
-      fileUploadBoxDisplayState: false,
     };
     this.uploadCSVFile = this.uploadCSVFile.bind(this);
 
@@ -743,41 +740,6 @@ class WHONETFileReader extends React.Component {
                 {settingsDropDown}
               </ButtonStrip>
             </div>
-            <p>Select file type </p>
-           
-              
-            
-            {/*<FormControl component="fieldset">
-              <RadioGroup label="position" name="position" value={this.value} onChange={this.fileTypeSelection} row>
-                
-                <FormControlLabel
-                  name="whonet"
-                  value="whonet"
-                  control={<Radio color="primary" />}
-                  label="Whonet file"
-                  labelPlacement="end"
-                />
-                <FormControlLabel
-                  name="multiLab"
-                  value="multiLab"
-                  control={<Radio color="primary" />}
-                  label="Lab file"
-                  labelPlacement="end"
-                />
-              </RadioGroup>
-            </FormControl>*/}
-            {/*<Radio
-              label="Whonet file"
-              name="whonet"
-              onChange={this.fileTypeSelection}
-              value="whonet"
-            />
-            <Radio
-              label="Lab file"
-              name="multiLab"
-              onChange={this.fileTypeSelection}
-              value="multiLab"
-            />*/}
             <div className="fileUploadCardBottomContent">              
               <input
                 className="fileInput"

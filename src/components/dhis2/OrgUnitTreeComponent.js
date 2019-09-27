@@ -51,7 +51,6 @@ export default class OrgUnitTreeComponent extends React.Component {
 				{this.state.feedBackToUser}
 				<aside className="sideBar">
 					<OrgUnitTree onSelect={this.handleOrgUnitSelect} onError={this.handleTreeError} className="orgUnitTreeSpace"/>
-					<Button small onClick={this.handleHelpModal} >Help</Button>
 					<Radio 
 						label="Whonet" 
 						onChange={() => this.setState({importFileType: 'whonet'})} 
@@ -64,6 +63,7 @@ export default class OrgUnitTreeComponent extends React.Component {
 						value="lab"
 						checked={this.state.importFileType==='lab'}
 					/> 
+					<Button small onClick={this.handleHelpModal} >Help</Button>					
 				</aside>
 				<WhonetController 
 				  	importFileType={this.state.importFileType} 
