@@ -50,8 +50,7 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
               });
               return {"teiId": teiId, "result": matchResult.length};
           }           
-      })
-      .catch(function (error) {
+      }).catch(function (error) {
         if(typeof error.response !== 'undefined'){
           console.log(error.response);
         }

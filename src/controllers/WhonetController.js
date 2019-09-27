@@ -511,8 +511,10 @@ class WHONETFileReader extends React.Component {
     * @{trackedEntityJson} - returns the final json payload 
     */
     if ((typeof teiPayloadString !== 'undefined' || teiPayloadString !== null)) {
+      
       trackedEntityJson = '{"trackedEntityInstances": ' + JSON.stringify(Object.entries(teiPayloadString).map(payload => payload[1])) + '}';
       console.log("Final teiPayloadString payload: ", trackedEntityJson);
+    
     }
 
     if (typeof teiPayloadString !== 'undefined') {
