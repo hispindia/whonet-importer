@@ -59,17 +59,23 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
     }  
 };
 export const getMe = async () => {
-    // return await get('api/me.json?fields=id,name,organisationUnits[:id,name,level,children[id,name,level,children[id,name,level,children[id,name,level]]]]&order:name:asc')
-    return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
+  return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
 };
 
 export const createTrackedEntity = async (trackedEntityJson) => {
+
     return axios(config.baseUrl+'api/trackedEntityInstances', {
         method: 'POST',
         headers: config.fetchOptions.headers,
         data: trackedEntityJson,
         withCredentials: true,        
-    }) 
+    }).then(response => {
+       return response;
+     })
+     .catch(error => {
+       return error.response.data.response;
+     }); 
+
 };
 
 /**

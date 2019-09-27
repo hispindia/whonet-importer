@@ -155,7 +155,7 @@ class WHONETFileReader extends React.Component {
           csvfile: event.target.files[0],
           fileFormatValue: splittedName
         });
-        
+
         if (!(typeof this.props.orgUnitId === 'undefined' || this.props.orgUnitId === null || this.props.orgUnitId === '')) {
 
           this.setState({
@@ -232,15 +232,17 @@ class WHONETFileReader extends React.Component {
     const dataStoreNamespaceElements   = this.state.dataStoreNamespaceElements;
     const dataStoreNamespaceAttributes = this.state.dataStoreNamespaceAttributes;
     const dataStoreNamespaceOptions    = this.state.dataStoreNamespaceOptions;
-
     const csvLength = csvData.length;
+    
     for (let i = 0; i < csvLength - 1; i++) {
 
       await (async (currentCsvData, duplicateStatus, currentIndex) => {
+
         let eventsPayload = {};
         let teiPayload = {};
         const csvObj = Object.entries(currentCsvData);
         let len = csvObj.length;
+
         for (let j = 0; j < len - 1; j++) {
 
           duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
@@ -254,61 +256,25 @@ class WHONETFileReader extends React.Component {
               });
               if (elementsFilterResult.length > 0) {
 
-                  let matchResult = columnValue.match(/\//g);
-                  if (matchResult !== null && matchResult.length === 2) {
-                    elementValue = formatDate(columnValue);
-                  } else {
-                    elementValue = columnValue.replace(/[=><_]/gi, '');
-                  }
-                  elementId = elementsFilterResult[0].id;
-
-                  // Options checking for data elements
-                  await getElementDetails(elementId).then((deResponse) => {
-                    
-                    if(typeof deResponse!== 'undefined' && typeof deResponse.data.optionSet !== 'undefined'){
-
-                      let updatedElId = deResponse.data.id;
-                      let optionSetId = deResponse.data.optionSet;
-                      
-                    // Get option sets with all options
-                      getOptionSetDetails(optionSetId.id).then((osResponse) => {
-                        if(typeof osResponse!== 'undefined'){
-
-                          let optionsDetail = osResponse.data.options;
-                          for (let i = 0; i < optionsDetail.length; i++) {
-
-                            let optionName = optionsDetail[i].name;
-                    // Options map filter from data store 
-                            /*optionsFilterResult = this.state.dataStoreNamespaceOptions.filter(function(option) {
-                              return option.mapCode === columnValue;
-                            });
-                            if(optionsFilterResult.length >= 1){
-                      
-                    // Set option value as option name in the data element        
-                              eventsPayload[index] = {
-                                "dataElement": updatedElId, 
-                                "value": optionsFilterResult[0].name
-                              };  
-                            }*/
-                          }
-                        } // end of osResponse
-                      });                                  
-                        
-                    } else { // if this element has no option set, the value will be the excel/csv cell value
-                        eventsPayload[index] = {
-                          "dataElement": elementId, 
-                          "value": elementValue
-                        };
-                      }                  
-                  }); // end await  
+                let matchResult = columnValue.match(/\//g);
+                if (matchResult !== null && matchResult.length === 2) {
+                  elementValue = formatDate(columnValue);
+                } else {
+                  elementValue = columnValue.replace(/[=><_]/gi, '');
                 }
-                if (columnName === config.dateColumn) {
-                  eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
-                }
-
-                attributesFilterResult = this.state.attributes.filter(function (attribute) {
-                  return attribute.code === columnName;
-                });
+                elementId = elementsFilterResult[0].id;
+                eventsPayload[index] = {
+                  "dataElement": elementId, 
+                  "value": elementValue
+                };  
+              }
+              if (columnName === config.dateColumn) {
+                eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
+              }
+              // Attributes filter from whonet code
+              attributesFilterResult = this.state.attributes.filter(function (attribute) {
+                return attribute.code === columnName;
+              });
 
             } else {
 
@@ -393,8 +359,9 @@ class WHONETFileReader extends React.Component {
                 attributeValue = columnValue.replace(/[=><_]/gi, '');
               }
 
-            // Options checking for attributes
-              await getAttributeDetails(attributeId).then((attributeResponse) => {
+              if (this.state.importFileType == 'multiLab') {
+              // Options checking for attributes
+                await getAttributeDetails(attributeId).then((attributeResponse) => {
                 
                 if(typeof attributeResponse!== 'undefined' && typeof attributeResponse.data.optionSet !== 'undefined'){
 
@@ -432,10 +399,16 @@ class WHONETFileReader extends React.Component {
                   };
                 }  
                 
-              }); // end await 
-              
-              // Duplicate Patient ID checking
+                }); // end await
 
+              } else { // If attributes are whonet
+                teiPayload[index] = {
+                    "attribute": attributeId,
+                    "value": attributeValue
+                  };
+              }                
+
+              // Duplicate Patient ID checking
               if (columnName === config.patientIdColumn) {
                 const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                 duplicate[index] = result;
@@ -544,8 +517,7 @@ class WHONETFileReader extends React.Component {
 
     if (typeof teiPayloadString !== 'undefined') {
       try {
-        let responseData = false;
-        responseData = await createTrackedEntity(trackedEntityJson);
+        let responseData = await createTrackedEntity(trackedEntityJson);
 
         if (typeof responseData.data !== 'undefined') {
           this.setState({
@@ -563,8 +535,12 @@ class WHONETFileReader extends React.Component {
               loading: false
             });
           }
-        } else {
-          this.giveUserFeedback('Response data is undefined')
+        } else { // Axios return 409 or ERROR
+          this.giveUserFeedback('Sorry! Unable to import whonet file. Please check the below log.');
+          this.setState({
+            teiResponse: responseData,
+            teiResponseString: JSON.stringify(responseData)
+          });
           this.setState({
             loading: false
           });
@@ -572,7 +548,9 @@ class WHONETFileReader extends React.Component {
 
       } catch (err) {
         if (typeof err !== 'undefined') {
-          // console.log(err)
+          console.log(err)
+        } else {
+          console.log(err)
         }
       }
 
