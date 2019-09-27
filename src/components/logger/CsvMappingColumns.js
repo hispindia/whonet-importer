@@ -17,57 +17,80 @@ export default class CsvMappingColumns extends React.Component {
   constructor(props) {
     super(props);
     this.state = {  
-      dataStoreNamespaceElements: []
+      dsNamespaceElements: [],
+      dsNamespaceAttributes: [],
+      dsNamespaceOptions: [],
+      open: props.isModalOpen,
+      dsNameSpace: [],
     }  
   }      
   async componentWillMount(){
+    let dsNameSpace = []; 
     await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
+      this.state.dsNameSpace.push(response.data.elements);
+      this.state.dsNameSpace.push(response.data.attributes);
+      this.state.dsNameSpace.push(response.data.options);
       this.setState({
-        dataStoreNamespaceElements : response.data.elements      
+        dsNamespaceElements  : response.data.elements,      
+        dsNamespaceAttributes: response.data.attributes,      
+        dsNamespaceOptions   :  response.data.options      
       }); 
     }).catch(error => this.setState({error: true}));
     
   }
 	render () {
     const classes = this.props;
-    let data = Object.entries(this.props.csvData);
-    let mapCode = "";
-    const dataStoreNamespaceElements = this.state.dataStoreNamespaceElements;
-    let dataValues = data.map( (value, key) =>{
-        let resultMappedElement, attributesFilterResult;             
-        if(this.props.settingType === 'multiLab'){
-          resultMappedElement = dataStoreNamespaceElements.filter(function(element) {                
-            return element.sourceCode === value[0];                          
-          });
-          // console.log({resultMappedElement});
-          attributesFilterResult = this.props.attributes.filter(function(attribute) {
-            return attribute.code === value[0];                             
-          });
-          if(resultMappedElement.length > 0){
-            mapCode = resultMappedElement[0].code;
-          } else if(attributesFilterResult.length > 0){
-            mapCode = attributesFilterResult[0].code;
-          } else {
-            mapCode = "";
-          }
+    let mapCode, dataValues, loggerTitle, matchedColumns;
+    let whonetFileData = Object.entries(this.props.csvData);    
+    const {dsNamespaceElements, dsNameSpace} = this.state;
 
-        } else {
+    if(this.props.settingType === 'multiLab'){
+      
+      loggerTitle = "Lab file: The following mappings were found in the selected file";
+      dataValues = whonetFileData.map( (value, key) =>{
 
-          resultMappedElement = this.props.dataElements.filter(function(element) {                
+        matchedColumns = dsNameSpace.map( (data, index ) =>{
+          return data.map( (info, i) => {
+            if (info.mapCode === value[0]) 
+              return info.mapCode;                
+          } )
+        }) 
+        return (
+          <TableRow key={key}>
+            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+              {key+1}
+            </TableCell>
+            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+              {value[0]}
+            </TableCell>
+            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+              <p style={styleProps.styles.colors.color2}> {matchedColumns} </p>
+            </TableCell>
+          </TableRow>
+        )
+      }); // dataValues end 
+
+    } else { 
+      loggerTitle = "WHONET file: The following mappings were found in the selected file";  
+      dataValues = whonetFileData.map( (value, key) =>{
+
+        let elFilterResult, attrFilterResult;        
+          elFilterResult = this.props.dataElements.filter(function(element) {
             return element.dataElement.code === value[0];                          
-          });
-          attributesFilterResult = this.props.attributes.filter(function(attribute) {
+          });          
+
+          attrFilterResult = this.props.attributes.filter(function(attribute) {
             return attribute.code === value[0];                             
           });
-          if(resultMappedElement.length > 0){
-            mapCode = resultMappedElement[0].dataElement.code;
-          } else if(attributesFilterResult.length > 0){
-            mapCode = attributesFilterResult[0].code;
+
+          if(elFilterResult.length > 0){
+            mapCode = elFilterResult[0].dataElement.code;
+          } else if(attrFilterResult.length > 0){
+            mapCode = attrFilterResult[0].code;
           } else {
             mapCode = "";
           }
-        }      
-        
+
         return (
             <TableRow key={key}>
               <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
@@ -81,32 +104,12 @@ export default class CsvMappingColumns extends React.Component {
               </TableCell>
             </TableRow>
           )
-    });
-    let labSettings = dataStoreNamespaceElements.map( (result, key) =>{    
-      return (
-            <TableRow key={key}>
-              <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-                {key+1}
-              </TableCell>
-              <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-                {result['id']}
-              </TableCell>
-              <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-               {result['name']}
-              </TableCell>
-              <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-               {result['code']}
-              </TableCell>
-              <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-               {result['sourceCode']}
-              </TableCell>
-            </TableRow>
-          )
-    });  
+      });
+    }  
 		return (
       <div>
         <Card className="importPreview">
-          <h3>The following mappings were found in the selected file </h3>
+          <h3> {loggerTitle} </h3>
           {/*<p style={styleProps.styles.colors.color1}>{"Required Fields: " + config.requiredColumns} </p>*/}
           <Table className={classes.table}>
             <TableHead>

@@ -20,7 +20,11 @@ class HelpModal extends React.Component {
   render() {
     return (
       <div>
+<<<<<<< HEAD
         <Modal medium open>
+=======
+        <Modal open={this.state.open} large>
+>>>>>>> origin
           <Modal.Content>
               <h3 style={styleProps.styles.cardHeaderModal}> TRACKER EVENT - WHONET DATA IMPORT HELP </h3>
               <p style={styleProps.styles.modalInnerScroll}>

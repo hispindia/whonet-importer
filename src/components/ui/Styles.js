@@ -18,8 +18,8 @@ export const styles = {
   cardDryRun: {
     margin: 16,
     width: 1210,
-    maxHeight: 195,
-    minHeight: 195,
+    maxHeight: 500,
+    minHeight: 500,
     float: 'left',
     transition: 'all 175ms ease-out',
     overflowY: 'scroll',

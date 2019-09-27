@@ -163,7 +163,7 @@ class DataElementsTable extends React.Component {
     this.setState({
       loading: true, feedbackToUser: '',
     });
-    for (let i = 0; i < updateArray.length-1; i++) { 
+    for (let i = 0; i < updateArray.length; i++) { 
       let j=0;
       if(/*updateArray[i].value !== '' && */updateArray[i].value !== 'true' ){
         getElementDetails(updateArray[i].id).then((response) => {

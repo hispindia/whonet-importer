@@ -137,6 +137,7 @@ export const getElementDetails = async (elementId) => {
 			console.log(error);
 		});
 };
+
 /**
 * @retunrs single attribute detail
 */
@@ -203,7 +204,7 @@ export const getOrgUnitDetail = async (orgUnitId) => {
  * @param {string} orgUnitId - Organisation unit ID.
  * @returns {string} AMR Id.
  */
-export const generateAmrId = async (orgUnitId, orgUnitCode, amrDataElement) => {
+export const generateAmrId = async (orgUnitId, orgUnitCode) => {
     const newId = () =>
     orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
     let amrId = newId();
@@ -214,14 +215,29 @@ export const generateAmrId = async (orgUnitId, orgUnitCode, amrDataElement) => {
         options: [`orgUnit=${orgUnitId}`],
       })
     ).then( response =>{
-      if (response.data.events.length) {
-        amrId = response.data.events;
+      if (typeof response.data.events =='undefined' || response.data.events.length == 0) {
         return amrId;
-      } else {
-        return amrId;
-      }
+      } 
     });
 }
+/*export const generateAmrId = async (orgUnitId, orgUnitCode) => {
+    const newId = () =>
+        orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
+
+    let amrId = newId()
+    while (
+        (await get(
+            request('api/events.json?', {
+                fields: 'event',
+                filters: `${config.amrIdDataElement}:eq:${amrId}`,
+                options: [`orgUnit=${orgUnitId}`],
+            })
+        )).events.length !== 0
+    )
+        amrId = newId()
+
+    return amrId
+}*/
 
 /**
 * Get data store

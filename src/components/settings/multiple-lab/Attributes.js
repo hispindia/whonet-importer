@@ -105,11 +105,11 @@ class Attributes extends React.Component {
       return datum.id === id;
     });
     if(targetIndex !== -1){ 
-      if(mergedArrayData[targetIndex].sourceCode !== '' || typeof mergedArrayData[targetIndex].sourceCode !== 'undefined' ){
-        mergedArrayData[targetIndex].sourceCode = value;
+      if(mergedArrayData[targetIndex].mapCode !== '' || typeof mergedArrayData[targetIndex].mapCode !== 'undefined' ){
+        mergedArrayData[targetIndex].mapCode = value;
         this.setState({mergedArrayData});
       } else {
-        mergedArrayData[targetIndex].sourceCode=value;
+        mergedArrayData[targetIndex].mapCode=value;
         this.setState({mergedArrayData});
       }     
     } else {
@@ -117,7 +117,7 @@ class Attributes extends React.Component {
         return datum.dataElement.id === id;
       });
       mergedArrayData[targetIndex].id=id;
-      mergedArrayData[targetIndex].sourceCode=value;
+      mergedArrayData[targetIndex].mapCode=value;
       this.setState({mergedArrayData});
     }
   }
@@ -131,7 +131,7 @@ class Attributes extends React.Component {
     let updateArray = e.target;
     const dataLength = updateArray.length;
     let updateAttributePayload = [];
-    for(let i=0; i< dataLength-1; i++) {
+    for(let i=0; i< dataLength; i++) {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
         let len = elementObj.length;
@@ -141,7 +141,7 @@ class Attributes extends React.Component {
               const result= await getAttributeDetails(updateArray[i].id);
                 let customAttributeString = result.data;                
                 // Array for datastore update
-                updateAttributePayload.push({"id": customAttributeString.id,"name": customAttributeString.name,"sourceCode": updateArray[i].value,"code": customAttributeString.code});                
+                updateAttributePayload.push({"id": customAttributeString.id,"name": customAttributeString.name,"mapCode": updateArray[i].value,"code": customAttributeString.code});                
             }    
           } ) (elementObj[j], {}, j);
         }  
@@ -205,7 +205,7 @@ class Attributes extends React.Component {
             {datum.code}
           </TableCell> 
           <TableCell style={styleProps.styles.tableHeader}>
-            <input type="text" id={datum.id} value={datum.sourceCode || ''}
+            <input type="text" id={datum.id} value={datum.mapCode || ''}
             onChange={this.handleInputChange} style={styleProps.styles.inputText}/>
           </TableCell>          
         </TableRow>
