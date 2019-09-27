@@ -13,11 +13,11 @@ import { hash } from '../components/helpers/Hash';
 import LoggerComponent from '../components/logger/LoggerComponent';
 import CsvMappingColumns from '../components/logger/CsvMappingColumns';
 import ImportResults from '../components/import-results/ImportResults';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
+//import Radio from '@material-ui/core/Radio';
+//import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
-import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal } from '@dhis2/ui-core';
+import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, Radio, RadioGroup } from '@dhis2/ui-core';
 import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
@@ -654,34 +654,6 @@ class WHONETFileReader extends React.Component {
   };
 
 
-<<<<<<< HEAD
-=======
-  /**
-  * @returns isHelpModalOpen true
-  */
-  handleHelpModal = () => {
-    this.setState({
-      isHelpModalOpen: !this.state.isHelpModalOpen,
-    });
-  };
-
-  /**
-  * importFileType - set multiLab or whonet file type
-  * fileUploadBoxDisplayState - set true for file upload input box visibility
-  */
-  fileTypeSelection = (event) => {
-    let target = event.target.value;
-    if (target !== '') { 
-      this.setState({
-        importFileType: target,
-        fileUploadBoxDisplayState: true
-      });
-    }
-    
-  };
-
-
->>>>>>> origin
   render() {
     // console.log("CTR: ", this.props.ctr);
 
@@ -771,8 +743,10 @@ class WHONETFileReader extends React.Component {
               </ButtonStrip>
             </div>
             <h4>Select file type </h4>
-            <FormControl component="fieldset">
-              <RadioGroup aria-label="position" name="position" value={this.value} onChange={this.fileTypeSelection} row>
+            <Radio label="Whonet" onChange={this.handleFileTypeSelection} value="default" checked/>
+            
+            {/*<FormControl component="fieldset">
+              <RadioGroup label="position" name="position" value={this.value} onChange={this.fileTypeSelection} row>
                 
                 <FormControlLabel
                   name="whonet"
@@ -789,7 +763,7 @@ class WHONETFileReader extends React.Component {
                   labelPlacement="end"
                 />
               </RadioGroup>
-            </FormControl>
+            </FormControl>*/}
             {/*<Radio
               label="Whonet file"
               name="whonet"
@@ -802,7 +776,6 @@ class WHONETFileReader extends React.Component {
               onChange={this.fileTypeSelection}
               value="multiLab"
             />*/}
-            {this.state.fileUploadBoxDisplayState?
             <div className="fileUploadCardBottomContent">              
               <input
                 className="fileInput"
@@ -817,7 +790,7 @@ class WHONETFileReader extends React.Component {
               />
               <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.disableImportButton}>Import</Button>
               
-            </div> : null }
+            </div>
             {importLoader}
             {modal}
           </Card>
