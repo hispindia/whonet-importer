@@ -203,6 +203,8 @@ class WHONETFileReader extends React.Component {
     let teiPayloadString = {};
     let orgUnitId = this.props.orgUnitId;
     let trackedEntityJson, eventDate;
+
+    // Data store check
     await getDataStoreNameSpace(orgUnitId).then((response) => {
       this.setState({
         dataStoreNamespaceElements  : response.data.elements,
