@@ -5,7 +5,6 @@ import CardText from 'material-ui/Card/CardText';
 import { InputField } from '@dhis2/d2-ui-core';
 import LinearProgress from '../components/ui/LinearProgress';
 import MappingModal from '../components/settings/MappingModal';
-import HelpModal from '../components/settings/HelpModal';
 import * as config from '../config/Config';
 import * as styleProps from '../components/ui/Styles';
 import * as actionTypes from '../constants/actions.js';
@@ -49,7 +48,6 @@ class WHONETFileReader extends React.Component {
       userOrgUnitName: props.orgUnit,
       fileFormatValue: '',
       isSettingModalOpen: false,
-      isHelpModalOpen: false,
       isMultipleLabSettingModalOpen: false,
       userRoles: "",
       userAuthority: "",
@@ -598,15 +596,6 @@ class WHONETFileReader extends React.Component {
   };
 
 
-  /**
-  * @returns isHelpModalOpen true
-  */
-  handleHelpModal = () => {
-    this.setState({
-      isHelpModalOpen: !this.state.isHelpModalOpen,
-    });
-  };
-
   render() {
     // console.log("CTR: ", this.props.ctr);
 
@@ -655,13 +644,7 @@ class WHONETFileReader extends React.Component {
       teiResponse = <ImportResults teiResponse={this.state.teiResponse} />
       logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} />
     }
-    /**
-    * HelpModal-static data for the user guideline, how this mapping works
-    * @returns-modal
-    */
-    if (this.state.isHelpModalOpen) {
-      modal = <HelpModal isModalOpen={this.state.isHelpModalOpen} handleModal={this.handleHelpModal} />
-    }
+    
     /**
     * SettingsIcon-for default setting button
     * AddCircleRounded-for multiple lab setting button
@@ -684,8 +667,6 @@ class WHONETFileReader extends React.Component {
         Mapping setup
         </DropdownButton>
 
-    let helpModal = <Button small onClick={this.handleHelpModal} >Help</Button>
-
     return (
       <div className="whoNetController" >
         {this.state.feedBackToUser}
@@ -695,7 +676,6 @@ class WHONETFileReader extends React.Component {
             <div className="fileUploadCardTopContent">
               <ButtonStrip>
                 {settingsDropDown}
-                {helpModal}
               </ButtonStrip>
             </div>
 
