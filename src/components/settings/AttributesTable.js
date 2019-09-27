@@ -159,7 +159,7 @@ class AttributesTable extends React.Component {
     this.setState({
       loading: true, feedbackToUser: '',
     });
-    for (let i = 0; i < updateArray.length-1; i++) { 
+    for (let i = 0; i < updateArray.length; i++) { 
       let j=0;
       if(updateArray[i].value !== 'true' ) {
         getAttributeDetails(updateArray[i].id).then((response) => {

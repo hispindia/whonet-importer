@@ -232,20 +232,7 @@ class WHONETFileReader extends React.Component {
               elementsFilterResult = this.state.dataElements.filter((element) => {
                 return element.dataElement.code === columnName;
               });
-              /*if (elementsFilterResult.length >= 1) {
-                let matchResult = columnValue.match(/\//g);
-                if (matchResult !== null && matchResult.length === 2) {
-                  elementValue = formatDate(columnValue);
-                } else {
-                  elementValue = columnValue.replace(/[=><_]/gi, '');
-                }
-                elementId = elementsFilterResult[0].dataElement.id;
-                eventsPayload[index] = {
-                  "dataElement": elementId,
-                  "value": elementValue
-                };
-              }*/
-                if (elementsFilterResult.length > 0) {
+              if (elementsFilterResult.length > 0) {
 
                   let matchResult = columnValue.match(/\//g);
                   if (matchResult !== null && matchResult.length === 2) {
@@ -300,7 +287,6 @@ class WHONETFileReader extends React.Component {
                 }
 
                 attributesFilterResult = this.state.attributes.filter(function (attribute) {
-
                   return attribute.code === columnName;
                 });
 
@@ -429,6 +415,7 @@ class WHONETFileReader extends React.Component {
               }); // end await 
               
               // Duplicate Patient ID checking
+
               if (columnName === config.patientIdColumn) {
                 const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                 duplicate[index] = result;
@@ -547,6 +534,9 @@ class WHONETFileReader extends React.Component {
           });
           if (responseData.data.httpStatus === "OK") {
             this.giveUserFeedback('Your data was successfully uploaded')
+            this.setState({
+                loading: false
+            });
           } else {
             this.giveUserFeedback('Unable to import WHONET file')
             this.setState({
@@ -694,12 +684,12 @@ class WHONETFileReader extends React.Component {
   render() {
     // console.log("CTR: ", this.props.ctr);
 
-    let spinner, modal, userAuthority, teiResponse, logger, multipleLabModal, requiredColumns;
+    let importLoader, modal, userAuthority, teiResponse, logger, multipleLabModal, requiredColumns;
     /**
     * Linear Loader
     */
     if (this.state.loading) {
-      spinner = <LinearProgress />
+      importLoader = <LinearProgress />
     }
     /**
     * Default modal for Elements and Attributes settings
@@ -836,7 +826,7 @@ class WHONETFileReader extends React.Component {
               <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.disableImportButton}>Import</Button>
               
             </div> : null }
-
+            {importLoader}
             {modal}
           </Card>
         </div>

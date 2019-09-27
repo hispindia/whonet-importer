@@ -131,7 +131,7 @@ class DataElementsTable extends React.Component {
     let updateArray = e.target;
     const dataLength = updateArray.length;
     let updateElementsPayload = [];
-    for(let i=0; i< dataLength-1; i++) {
+    for(let i=0; i< dataLength; i++) {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
         let len = elementObj.length;

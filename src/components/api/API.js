@@ -137,6 +137,7 @@ export const getElementDetails = async (elementId) => {
 			console.log(error);
 		});
 };
+
 /**
 * @retunrs single attribute detail
 */

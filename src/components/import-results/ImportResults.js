@@ -10,6 +10,7 @@ export default class ImportResults extends React.Component {
 		let tableData;
 		if(this.props.teiResponse.status === 'ERROR'){
 			tableData = <Table>
+					<h3> Import Summary </h3>
 	          <TableBody>            
 	            <TableRow>
 		          <TableCell style={styleProps.styles.tableHeader}>
@@ -55,6 +56,8 @@ export default class ImportResults extends React.Component {
 	        </Table>
 		} else {
 			tableData = <Table>
+
+					<h3> Import Summary </h3>
 	          <TableBody>            
 	            <TableRow>
 		          <TableCell style={styleProps.styles.tableHeader}>
