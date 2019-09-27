@@ -71,7 +71,6 @@ class WHONETFileReader extends React.Component {
       settingsDropDown: "",
       feedBackToUser: undefined,
       disableImportButton: true,
-      importFileType: "",
       fileUploadBoxDisplayState: false,
     };
     this.uploadCSVFile = this.uploadCSVFile.bind(this);
@@ -119,6 +118,8 @@ class WHONETFileReader extends React.Component {
       }
     });
   }
+
+
   handleChangeFileUpload = (event) => {
 
     /**
@@ -127,7 +128,7 @@ class WHONETFileReader extends React.Component {
     * Update setter 
     */
     if (typeof event.target.files[0] !== 'undefined') {
-      let fileType = this.state.importFileType; 
+      let fileType = this.props.importFileType; 
       let filename = event.target.files[0].name;
       let splittedName = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
 
@@ -224,7 +225,7 @@ class WHONETFileReader extends React.Component {
           duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
             let elementsFilterResult, attributesFilterResult, optionsFilterResult;
             
-            if (this.state.importFileType == 'whonet') {
+            if (this.props.importFileType == 'whonet') {
 
               // Elements filter from whonet code
               elementsFilterResult = this.state.dataElements.filter((element) => {
@@ -690,13 +691,13 @@ class WHONETFileReader extends React.Component {
     */
     if (Object.keys(this.state.mappingCsvData).length > 0 || Object.entries(this.state.mappingCsvData).length > 0) {
 
-      if (this.state.importFileType === 'multiLab') {
+      if (this.props.importFileType === 'multiLab') {
 
-        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.state.importFileType} orgUnitId={this.props.orgUnitId} />;
+        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.props.importFileType} orgUnitId={this.props.orgUnitId} />;
 
       } else { 
 
-        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.state.importFileType} />;
+        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.props.importFileType} />;
       }
 
     }
@@ -742,8 +743,9 @@ class WHONETFileReader extends React.Component {
                 {settingsDropDown}
               </ButtonStrip>
             </div>
-            <h4>Select file type </h4>
-            <Radio label="Whonet" onChange={this.handleFileTypeSelection} value="default" checked/>
+            <p>Select file type </p>
+           
+              
             
             {/*<FormControl component="fieldset">
               <RadioGroup label="position" name="position" value={this.value} onChange={this.fileTypeSelection} row>
