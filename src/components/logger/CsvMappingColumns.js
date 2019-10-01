@@ -50,9 +50,12 @@ export default class CsvMappingColumns extends React.Component {
       loggerTitle = "Lab file: The following mappings were found in the selected file";
       dataValues = whonetFileData.map( (value, key) =>{
 
+        let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
+        let csvColumnName  = splittedValue[0];
+        // console.log("Lab: ", csvColumnName);
         matchedColumns = dsNameSpace.map( (data, index ) =>{
           return data.map( (info, i) => {
-            if (info.mapCode === value[0]) 
+            if (info.mapCode === csvColumnName) 
               return info.mapCode;                
           } )
         }) 
@@ -62,7 +65,7 @@ export default class CsvMappingColumns extends React.Component {
               {key+1}
             </TableCell>
             <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-              {value[0]}
+              {csvColumnName}
             </TableCell>
             <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
               <p style={styleProps.styles.colors.color2}> {matchedColumns} </p>
@@ -74,18 +77,23 @@ export default class CsvMappingColumns extends React.Component {
     } else { 
       loggerTitle = "WHONET file: The following mappings were found in the selected file";  
       dataValues = whonetFileData.map( (value, key) =>{
+        let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
+        let csvColumnName  = splittedValue[0];
+        // console.log("Whonet: ", csvColumnName);
 
         let elFilterResult, attrFilterResult;        
           elFilterResult = this.props.dataElements.filter(function(element) {
-            return element.dataElement.code === value[0];                          
+            
+            return element.dataElement.code === csvColumnName;                          
           });          
 
           attrFilterResult = this.props.attributes.filter(function(attribute) {
-            return attribute.code === value[0];                             
+            return attribute.code === csvColumnName;                             
           });
 
           if(elFilterResult.length > 0){
             mapCode = elFilterResult[0].dataElement.code;
+            console.log({mapCode});
           } else if(attrFilterResult.length > 0){
             mapCode = attrFilterResult[0].code;
           } else {

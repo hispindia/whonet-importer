@@ -248,11 +248,16 @@ class WHONETFileReader extends React.Component {
           duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
             let elementsFilterResult, attributesFilterResult, optionsFilterResult;
             
+            let splittedValue  = columnName.split(","); // remove the C,2 or C,6 portion
+            let csvColumnName  = splittedValue[0];
+
+            // console.log({csvColumnName})
+
             if (this.state.importFileType == 'whonet') {
 
               // Elements filter from whonet code
               elementsFilterResult = this.state.dataElements.filter((element) => {
-                return element.dataElement.code === columnName;
+                return element.dataElement.code === csvColumnName;
               });
               if (elementsFilterResult.length > 0) {
 
@@ -268,19 +273,19 @@ class WHONETFileReader extends React.Component {
                   "value": elementValue
                 };  
               }
-              if (columnName === config.dateColumn) {
+              if (csvColumnName === config.dateColumn) {
                 eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
               }
               // Attributes filter from whonet code
               attributesFilterResult = this.state.attributes.filter(function (attribute) {
-                return attribute.code === columnName;
+                return attribute.code === csvColumnName;
               });
 
             } else {
 
               // Elements filter from data store
               elementsFilterResult = dataStoreNamespaceElements.filter((element) => {
-                return element.mapCode === columnName;
+                return element.mapCode === csvColumnName;
               });
 
               if (elementsFilterResult.length >= 1) {
@@ -334,13 +339,13 @@ class WHONETFileReader extends React.Component {
                   
                 }); // end await  
               }
-              if (columnName === config.dateColumn) {
+              if (csvColumnName === config.dateColumn) {
                 eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
               }
 
               // Attributes filter from data store
               attributesFilterResult = this.state.dataStoreNamespaceAttributes.filter(function (attribute) {
-                return attribute.mapCode === columnName;
+                return attribute.mapCode === csvColumnName;
               });
             }
 
@@ -353,7 +358,7 @@ class WHONETFileReader extends React.Component {
                 attributeValue = formatDate(columnValue);
               }
 
-              if (columnName === config.patientIdColumn) {
+              if (csvColumnName === config.patientIdColumn) {
                 attributeValue = hash(columnValue.replace(/[=><_]/gi, ''));
               } else {
                 attributeValue = columnValue.replace(/[=><_]/gi, '');
@@ -409,7 +414,7 @@ class WHONETFileReader extends React.Component {
               }                
 
               // Duplicate Patient ID checking
-              if (columnName === config.patientIdColumn) {
+              if (csvColumnName === config.patientIdColumn) {
                 const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                 duplicate[index] = result;
                 if (typeof result !== 'undefined') {
