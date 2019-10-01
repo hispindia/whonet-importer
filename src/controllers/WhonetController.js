@@ -247,16 +247,12 @@ class WHONETFileReader extends React.Component {
           duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
             let elementsFilterResult, attributesFilterResult, optionsFilterResult;
             
-<<<<<<< HEAD
             let splittedValue  = columnName.split(","); // remove the C,2 or C,6 portion
             let csvColumnName  = splittedValue[0];
 
             // console.log({csvColumnName})
 
             if (this.state.importFileType == 'whonet') {
-=======
-            if (this.props.importFileType == 'whonet') {
->>>>>>> 5827b6877a25f105a0f9a83f2764408e8b746fe0
 
               // Elements filter from whonet code
               elementsFilterResult = this.state.dataElements.filter((element) => {
