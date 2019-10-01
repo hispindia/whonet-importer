@@ -5,11 +5,18 @@
     flex-direction: row; 
     /*background-color: rgb(240, 240, 240);*/
 }
-.orgUnitTreeCard {
-    padding: 1%;
-    width: auto !important;
-    max-width: 40%;
-    overflow: auto; 
+.sideBar {
+    display: flex;
+    flex-direction: column; 
+    background-color: #fff;
+    border-right: 1px solid rgba(0, 0, 0, 0.12);
+    max-height: calc(100vh - 48px);
+}
+.orgUnitTreeSpace {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 2;
+    max-height: 50px;
 }
 .whoNetController {
     flex-grow: 1;

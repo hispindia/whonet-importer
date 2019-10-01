@@ -5,7 +5,6 @@ import CardText from 'material-ui/Card/CardText';
 import { InputField } from '@dhis2/d2-ui-core';
 import LinearProgress from '../components/ui/LinearProgress';
 import MappingModal from '../components/settings/MappingModal';
-import HelpModal from '../components/settings/HelpModal';
 import * as config from '../config/Config';
 import * as styleProps from '../components/ui/Styles';
 import * as actionTypes from '../constants/actions.js';
@@ -14,11 +13,11 @@ import { hash } from '../components/helpers/Hash';
 import LoggerComponent from '../components/logger/LoggerComponent';
 import CsvMappingColumns from '../components/logger/CsvMappingColumns';
 import ImportResults from '../components/import-results/ImportResults';
-import Radio from '@material-ui/core/Radio';
-import RadioGroup from '@material-ui/core/RadioGroup';
+//import Radio from '@material-ui/core/Radio';
+//import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
-import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal } from '@dhis2/ui-core';
+import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, Radio, RadioGroup } from '@dhis2/ui-core';
 import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
@@ -53,7 +52,6 @@ class WHONETFileReader extends React.Component {
       userOrgUnitName: props.orgUnit,
       fileFormatValue: '',
       isSettingModalOpen: false,
-      isHelpModalOpen: false,
       isMultipleLabSettingModalOpen: false,
       userRoles: "",
       userAuthority: "",
@@ -73,7 +71,6 @@ class WHONETFileReader extends React.Component {
       settingsDropDown: "",
       feedBackToUser: undefined,
       disableImportButton: true,
-      importFileType: "",
       fileUploadBoxDisplayState: false,
     };
     this.uploadCSVFile = this.uploadCSVFile.bind(this);
@@ -129,6 +126,8 @@ class WHONETFileReader extends React.Component {
       }
     });*/
   }
+
+
   handleChangeFileUpload = (event) => {
 
     /**
@@ -137,7 +136,7 @@ class WHONETFileReader extends React.Component {
     * Update setter 
     */
     if (typeof event.target.files[0] !== 'undefined') {
-      let fileType = this.state.importFileType; 
+      let fileType = this.props.importFileType; 
       let filename = event.target.files[0].name;
       let splittedName = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
 
@@ -248,12 +247,16 @@ class WHONETFileReader extends React.Component {
           duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
             let elementsFilterResult, attributesFilterResult, optionsFilterResult;
             
+<<<<<<< HEAD
             let splittedValue  = columnName.split(","); // remove the C,2 or C,6 portion
             let csvColumnName  = splittedValue[0];
 
             // console.log({csvColumnName})
 
             if (this.state.importFileType == 'whonet') {
+=======
+            if (this.props.importFileType == 'whonet') {
+>>>>>>> 5827b6877a25f105a0f9a83f2764408e8b746fe0
 
               // Elements filter from whonet code
               elementsFilterResult = this.state.dataElements.filter((element) => {
@@ -661,31 +664,6 @@ class WHONETFileReader extends React.Component {
   };
 
 
-  /**
-  * @returns isHelpModalOpen true
-  */
-  handleHelpModal = () => {
-    this.setState({
-      isHelpModalOpen: !this.state.isHelpModalOpen,
-    });
-  };
-
-  /**
-  * importFileType - set multiLab or whonet file type
-  * fileUploadBoxDisplayState - set true for file upload input box visibility
-  */
-  fileTypeSelection = (event) => {
-    let target = event.target.value;
-    if (target !== '') { 
-      this.setState({
-        importFileType: target,
-        fileUploadBoxDisplayState: true
-      });
-    }
-    
-  };
-
-
   render() {
     // console.log("CTR: ", this.props.ctr);
 
@@ -722,13 +700,13 @@ class WHONETFileReader extends React.Component {
     */
     if (Object.keys(this.state.mappingCsvData).length > 0 || Object.entries(this.state.mappingCsvData).length > 0) {
 
-      if (this.state.importFileType === 'multiLab') {
+      if (this.props.importFileType === 'multiLab') {
 
-        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.state.importFileType} orgUnitId={this.props.orgUnitId} />;
+        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.props.importFileType} orgUnitId={this.props.orgUnitId} />;
 
       } else { 
 
-        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.state.importFileType} />;
+        logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.props.importFileType} />;
       }
 
     }
@@ -740,13 +718,7 @@ class WHONETFileReader extends React.Component {
       teiResponse = <ImportResults teiResponse={this.state.teiResponse} />
       logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} />
     }
-    /**
-    * HelpModal-static data for the user guideline, how this mapping works
-    * @returns-modal
-    */
-    if (this.state.isHelpModalOpen) {
-      modal = <HelpModal isModalOpen={this.state.isHelpModalOpen} handleModal={this.handleHelpModal} />
-    }
+    
     /**
     * SettingsIcon-for default setting button
     * AddCircleRounded-for multiple lab setting button
@@ -769,8 +741,6 @@ class WHONETFileReader extends React.Component {
         Mapping setup
       </DropdownButton>
 
-    let helpModal = <Button small onClick={this.handleHelpModal} >Help</Button>
-
     return (
       <div className="whoNetController" >
         {this.state.feedBackToUser}
@@ -780,12 +750,14 @@ class WHONETFileReader extends React.Component {
             <div className="fileUploadCardTopContent">
               <ButtonStrip>
                 {settingsDropDown}
-                {helpModal}
               </ButtonStrip>
             </div>
-            <h4>Select file type </h4>
-            <FormControl component="fieldset">
-              <RadioGroup aria-label="position" name="position" value={this.value} onChange={this.fileTypeSelection} row>
+            <p>Select file type </p>
+           
+              
+            
+            {/*<FormControl component="fieldset">
+              <RadioGroup label="position" name="position" value={this.value} onChange={this.fileTypeSelection} row>
                 
                 <FormControlLabel
                   name="whonet"
@@ -802,7 +774,7 @@ class WHONETFileReader extends React.Component {
                   labelPlacement="end"
                 />
               </RadioGroup>
-            </FormControl>
+            </FormControl>*/}
             {/*<Radio
               label="Whonet file"
               name="whonet"
@@ -815,7 +787,6 @@ class WHONETFileReader extends React.Component {
               onChange={this.fileTypeSelection}
               value="multiLab"
             />*/}
-            {this.state.fileUploadBoxDisplayState?
             <div className="fileUploadCardBottomContent">              
               <input
                 className="fileInput"
@@ -830,7 +801,7 @@ class WHONETFileReader extends React.Component {
               />
               <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.disableImportButton}>Import</Button>
               
-            </div> : null }
+            </div>
             {importLoader}
             {modal}
           </Card>
