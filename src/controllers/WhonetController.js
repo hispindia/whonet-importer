@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import Papa from 'papaparse';
 import CardText from 'material-ui/Card/CardText';
 import { InputField } from '@dhis2/d2-ui-core';
-import LinearProgress from '../components/ui/LinearProgress';
 import MappingModal from '../components/settings/MappingModal';
 import * as config from '../config/Config';
 import * as styleProps from '../components/ui/Styles';
@@ -15,7 +14,7 @@ import CsvMappingColumns from '../components/logger/CsvMappingColumns';
 import ImportResults from '../components/import-results/ImportResults';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
-import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal } from '@dhis2/ui-core';
+import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, CircularLoader } from '@dhis2/ui-core';
 import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
@@ -118,7 +117,6 @@ class WHONETFileReader extends React.Component {
 
 
   handleChangeFileUpload = (event) => {
-
     /**
     * Selected file format checking
     * Accept only .csv file format
@@ -128,15 +126,10 @@ class WHONETFileReader extends React.Component {
       let fileType = this.props.importFileType; 
       let filename = event.target.files[0].name;
       let splittedName = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
-
       if (fileType === ''){
-
-        this.giveUserFeedback(" Please select your import file type. ");
-        
+        this.giveUserFeedback(" Please select your import file type. "); 
       } else if (splittedName !== 'csv') {
-
         this.giveUserFeedback("Sorry! Please upload correct file format! Accepted file fortmat is CSV. Your selected file name: " + event.target.files[0].name + " Last Modified: " + event.target.files[0].lastModified + " Size: " + event.target.files[0].size + " File type: " + event.target.files[0].type);
-
       } else {
         this.setState({
           csvfile: event.target.files[0],
@@ -152,13 +145,12 @@ class WHONETFileReader extends React.Component {
           complete: this.generateCsvMappingTable,
           header: true
         });
-
         console.log("Your selected file: ", event.target.files[0].name);
-      }
-      
+      }  
     }
+  }
 
-  };
+
   /**
   * @input the selected parsed csv file data
   * @{mappingCsvData} set CSV file columns
@@ -653,24 +645,17 @@ class WHONETFileReader extends React.Component {
 
 
   render() {
-    // console.log("CTR: ", this.props.ctr);
-
     let importLoader, modal, userAuthority, teiResponse, logger, multipleLabModal, requiredColumns;
-    /**
-    * Linear Loader
-    */
     if (this.state.loading) {
-      importLoader = <LinearProgress />
+      importLoader = <CircularLoader className='circularLoader'/>
     }
     /**
     * Default modal for Elements and Attributes settings
     * @settingType-whonet for super admin & all previleage level access
     */
     if (this.state.isSettingModalOpen) {
-
       modal = <MappingModal isModalOpen={this.state.isSettingModalOpen} handleModal={this.handleSettingModal} settingType="whonet" />
     }
-
     /**
     * Multi-lab setting
     * @settingType-multipleLab for all level of users access
@@ -687,16 +672,11 @@ class WHONETFileReader extends React.Component {
     * @returns-logger
     */
     if (Object.keys(this.state.mappingCsvData).length > 0 || Object.entries(this.state.mappingCsvData).length > 0) {
-
       if (this.props.importFileType === 'multiLab') {
-
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.props.importFileType} orgUnitId={this.props.orgUnitId} />;
-
       } else { 
-
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.props.importFileType} />;
       }
-
     }
     /**
     * ImportResults-import result summary & logger for json response preview
@@ -706,7 +686,6 @@ class WHONETFileReader extends React.Component {
       teiResponse = <ImportResults teiResponse={this.state.teiResponse} />
       logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} />
     }
-    
     /**
     * SettingsIcon-for default setting button
     * AddCircleRounded-for multiple lab setting button
@@ -732,6 +711,7 @@ class WHONETFileReader extends React.Component {
     return (
       <div className="whoNetController" >
         {this.state.feedBackToUser}
+        {importLoader}
         <div>
           <Card className="fileUploadCard">
 
@@ -755,7 +735,7 @@ class WHONETFileReader extends React.Component {
               <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.disableImportButton}>Import</Button>
               
             </div>
-            {importLoader}
+           
             {modal}
           </Card>
         </div>
