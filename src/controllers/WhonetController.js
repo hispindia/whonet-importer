@@ -620,30 +620,6 @@ class WHONETFileReader extends React.Component {
   }
 
 
-  /**
-  * @returns isSettingModalOpen true
-  */
-  handleSettingModal = () => {
-    this.setState({
-      isSettingModalOpen: !this.state.isSettingModalOpen,
-    });
-  };
-
-  /**
-  * @returns isSettingModalOpen true
-  */
-  handleMultipleLabSettingModal = () => {
-    if (this.props.orgUnitId.length === 0) {
-      this.giveUserFeedback('Please select an organization unit')
-    }
-    else {
-      this.setState({
-        isMultipleLabSettingModalOpen: !this.state.isMultipleLabSettingModalOpen,
-      });
-    }
-  };
-
-
   render() {
     let importLoader, modal, userAuthority, teiResponse, logger, multipleLabModal, requiredColumns;
     if (this.state.loading) {
@@ -686,27 +662,6 @@ class WHONETFileReader extends React.Component {
       teiResponse = <ImportResults teiResponse={this.state.teiResponse} />
       logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} />
     }
-    /**
-    * SettingsIcon-for default setting button
-    * AddCircleRounded-for multiple lab setting button
-    * ViewSupportIcon-for help modal
-    * @returns-modal
-    */
-    if (this.state.userAuthority === 'ALL') {
-      userAuthority = <MenuItem label="Global settings" onClick={this.handleSettingModal} />;
-    }
-    multipleLabModal = <MenuItem label="Settings for this org unit" onClick={this.handleMultipleLabSettingModal} />;
-    let settingsDropDown =
-      <DropdownButton
-        small
-        component={
-          <Menu>
-            {userAuthority}
-            {multipleLabModal}
-          </Menu>
-        }>
-        Mapping setup
-      </DropdownButton>
 
     return (
       <div className="whoNetController" >
@@ -715,11 +670,6 @@ class WHONETFileReader extends React.Component {
         <div>
           <Card className="fileUploadCard">
 
-            <div className="fileUploadCardTopContent">
-              <ButtonStrip>
-                {settingsDropDown}
-              </ButtonStrip>
-            </div>
             <div className="fileUploadCardBottomContent">              
               <input
                 className="fileInput"
