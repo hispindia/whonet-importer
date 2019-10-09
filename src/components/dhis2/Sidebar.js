@@ -6,9 +6,12 @@ import { Card, Modal, Button, Radio } from '@dhis2/ui-core';
 import '../../style/dhis2UiStyle.css';
 import { OrgUnitTree } from '@hisp-amr/org-unit-tree';
 import HelpModal from '../../components/settings/HelpModal';
+import MappingModal from '../settings/MappingModal';
+import * as config from '../../config/Config';
 
 
-export default class OrgUnitTreeComponent extends React.Component {
+
+export default class Sidebar extends React.Component {
 	state = {
       	userOrgUnitId  : [],
 		userOrgUnitName: '',
@@ -20,6 +23,28 @@ export default class OrgUnitTreeComponent extends React.Component {
 	handleOrgUnitSelect = ({id, displayName}) => {
 		this.setState({userOrgUnitId : id, userOrgUnitName: displayName})
 	}
+
+
+	handleMappingSettings = () => {
+		if (this.state.importFileType === 'whonet') {
+			this.setState({feedBackToUser: 
+				<MappingModal isModalOpen='true' handleModal={this.handleSettingModal} 
+				settingType="whonet" /> })
+		}
+		else {
+			this.setState({feedBackToUser: 
+				<MappingModal isModalOpen='true' handleModal={this.handleSettingModal} 
+				settingType='multiLab' orgUnitId={this.state.userOrgUnitId} 
+				orgUnitName={this.state.userOrgUnitName} />})	
+		}
+	}
+
+
+	handleSettingModal = () => {
+		this.setState({
+		  feedBackToUser: '',
+		})
+	  }
 
 	
 	handleHelpModal = () => {
@@ -50,9 +75,14 @@ export default class OrgUnitTreeComponent extends React.Component {
       		<div className="pageContainer">
 				{this.state.feedBackToUser}
 				<aside className="sideBar">
-					<OrgUnitTree onSelect={this.handleOrgUnitSelect} onError={this.handleTreeError} className="orgUnitTreeSpace"/>
-					<Button small onClick={this.handleHelpModal} >Help</Button>
+					<div className="treeBox">
+						<p>Organization Unit</p>
+						<OrgUnitTree onSelect={this.handleOrgUnitSelect} onError={this.handleTreeError} className="orgUnitTreeSpace"/>
+					</div>
+					<p>Mapping</p>
+					<div className='mappingRadioButtons'>
 					<Radio 
+						className='leftRadioButton'
 						label="Whonet" 
 						onChange={() => this.setState({importFileType: 'whonet'})} 
 						value="whonet" 
@@ -64,6 +94,12 @@ export default class OrgUnitTreeComponent extends React.Component {
 						value="lab"
 						checked={this.state.importFileType==='lab'}
 					/> 
+					</div>
+					<Button className='sidebarButton' small onClick={this.handleMappingSettings} >Change mapping</Button>					
+					<div className='fileBox'>
+						
+					</div>
+					<Button className='sidebarButton' small onClick={this.handleHelpModal} >Help</Button>					
 				</aside>
 				<WhonetController 
 				  	importFileType={this.state.importFileType} 
@@ -77,6 +113,6 @@ export default class OrgUnitTreeComponent extends React.Component {
 }
 
 
-OrgUnitTreeComponent.propTypes = {
+Sidebar.propTypes = {
     d2: PropTypes.object.isRequired,
 }
