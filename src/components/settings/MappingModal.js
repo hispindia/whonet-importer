@@ -24,7 +24,7 @@ class MappingModal extends React.Component {
   
 
   componentDidMount() {
-    if (this.props.settingType === 'multiLab') {
+    if (this.props.settingType === 'lab') {
       this.setState({
         title: 'Change mapping settings for org. unit: ' + this.props.orgUnitName,
         selectedTab: 'elements'})
@@ -39,7 +39,7 @@ class MappingModal extends React.Component {
 
   render() {
     let tabBar;
-    if (this.props.settingType === 'multiLab') {
+    if (this.props.settingType === 'lab') {
       tabBar = 
       <TabBar>
         <Tab selected={this.state.selectedTab==='elements'} onClick={()=>this.setState({selectedTab: 'elements'})} > Elements </Tab>

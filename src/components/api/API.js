@@ -212,7 +212,8 @@ export const getOrgUnitDetail = async (orgUnitId) => {
 export const generateAmrId = async (orgUnitId, orgUnitCode) => {
     const newId = () =>
     orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
-    let amrId = newId();
+     let amrId = newId();
+    console.log({amrId});
     return get(
       request('api/events.json?', {
         fields: 'event',

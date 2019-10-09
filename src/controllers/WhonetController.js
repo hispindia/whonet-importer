@@ -132,6 +132,7 @@ class WHONETFileReader extends React.Component {
     */
     if (typeof event.target.files[0] !== 'undefined') {
       let fileType = this.props.importFileType; 
+
       let filename = event.target.files[0].name;
       let splittedName = filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2);
       if (fileType === ''){
@@ -205,8 +206,8 @@ class WHONETFileReader extends React.Component {
     let teiPayloadString = {};
     let orgUnitId = this.props.orgUnitId;
     let trackedEntityJson, eventDate;
-
-    if (this.state.importFileType === 'multiLab') {
+    console.log(this.props.importFileType );
+    if (this.props.importFileType === 'lab') {
       // Data store check
       await getDataStoreNameSpace(orgUnitId).then((response) => {
         this.setState({
@@ -240,8 +241,7 @@ class WHONETFileReader extends React.Component {
             let csvColumnName  = splittedValue[0];
 
             // console.log({csvColumnName})
-
-            if (this.state.importFileType == 'whonet') {
+            if (this.props.importFileType == 'whonet') {
 
               // Elements filter from whonet code
               elementsFilterResult = this.state.dataElements.filter((element) => {
@@ -255,7 +255,7 @@ class WHONETFileReader extends React.Component {
                 } else {
                   elementValue = columnValue.replace(/[=><_]/gi, '');
                 }
-                elementId = elementsFilterResult[0].id;
+                elementId = elementsFilterResult[0].dataElement.id;
                 eventsPayload[index] = {
                   "dataElement": elementId, 
                   "value": elementValue
@@ -268,7 +268,7 @@ class WHONETFileReader extends React.Component {
               attributesFilterResult = this.state.attributes.filter(function (attribute) {
                 return attribute.code === csvColumnName;
               });
-
+              
             } else {
 
               // Elements filter from data store
@@ -285,7 +285,7 @@ class WHONETFileReader extends React.Component {
                   elementValue = columnValue.replace(/[=><_]/gi, '');
                 }
                 elementId = elementsFilterResult[0].id;
-
+                // console.log({elementId})
                 // Options checking for data elements
                 await getElementDetails(elementId).then((deResponse) => {
                   
@@ -293,7 +293,7 @@ class WHONETFileReader extends React.Component {
 
                     let updatedElId = deResponse.data.id;
                     let optionSetId = deResponse.data.optionSet;
-                    
+                    // console.log({updatedElId});
                   // Get option sets with all options
                     getOptionSetDetails(optionSetId.id).then((osResponse) => {
                       if(typeof osResponse!== 'undefined'){
@@ -336,7 +336,7 @@ class WHONETFileReader extends React.Component {
                 return attribute.mapCode === csvColumnName;
               });
             }
-
+            // console.log({attributesFilterResult});
             if (attributesFilterResult.length >= 1) {
               let attributeValue;
               attributeId = attributesFilterResult[0].id;
@@ -347,12 +347,13 @@ class WHONETFileReader extends React.Component {
               }
 
               if (csvColumnName === config.patientIdColumn) {
+                
                 attributeValue = hash(columnValue.replace(/[=><_]/gi, ''));
               } else {
                 attributeValue = columnValue.replace(/[=><_]/gi, '');
               }
 
-              if (this.state.importFileType == 'multiLab') {
+              if (this.props.importFileType == 'lab') {
               // Options checking for attributes
                 await getAttributeDetails(attributeId).then((attributeResponse) => {
                 
@@ -439,7 +440,6 @@ class WHONETFileReader extends React.Component {
           "value": getAmrId
         }];
         let eventsPayloadUpdated = Object.assign(eventsPayload, amrIdPayload);
-
 
         /**
         * @{Object.keys(teiPayload)} checkes the json payload length
@@ -648,12 +648,12 @@ class WHONETFileReader extends React.Component {
 
     /**
     * CsvMappingColumns-bottom csv file header mapping
-    * multiLab-returns individual lab setting data mapping
+    * lab-returns individual lab setting data mapping
     * whonet-returns whonet code mapping
     * @returns-logger
     */
     if (Object.keys(this.state.mappingCsvData).length > 0 || Object.entries(this.state.mappingCsvData).length > 0) {
-      if (this.props.importFileType === 'multiLab') {
+      if (this.props.importFileType === 'lab') {
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.props.importFileType} orgUnitId={this.props.orgUnitId} />;
       } else { 
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.props.importFileType} />;

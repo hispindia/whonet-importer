@@ -26,7 +26,7 @@ export default class CsvMappingColumns extends React.Component {
   }      
   async componentWillMount(){
     let dsNameSpace = []; 
-    if(this.props.settingType === 'multiLab'){
+    if(this.props.settingType === 'lab'){
       await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
         this.state.dsNameSpace.push(response.data.elements);
         this.state.dsNameSpace.push(response.data.attributes);
@@ -45,7 +45,7 @@ export default class CsvMappingColumns extends React.Component {
     let whonetFileData = Object.entries(this.props.csvData);    
     const {dsNamespaceElements, dsNameSpace} = this.state;
 
-    if(this.props.settingType === 'multiLab'){
+    if(this.props.settingType === 'lab'){
       
       loggerTitle = "Lab file: The following mappings were found in the selected file";
       dataValues = whonetFileData.map( (value, key) =>{
@@ -93,7 +93,6 @@ export default class CsvMappingColumns extends React.Component {
 
           if(elFilterResult.length > 0){
             mapCode = elFilterResult[0].dataElement.code;
-            console.log({mapCode});
           } else if(attrFilterResult.length > 0){
             mapCode = attrFilterResult[0].code;
           } else {

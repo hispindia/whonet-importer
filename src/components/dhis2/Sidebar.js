@@ -34,7 +34,7 @@ export default class Sidebar extends React.Component {
 		else {
 			this.setState({feedBackToUser: 
 				<MappingModal isModalOpen='true' handleModal={this.handleSettingModal} 
-				settingType='multiLab' orgUnitId={this.state.userOrgUnitId} 
+				settingType='lab' orgUnitId={this.state.userOrgUnitId} 
 				orgUnitName={this.state.userOrgUnitName} />})	
 		}
 	}
