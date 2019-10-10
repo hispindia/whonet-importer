@@ -6,7 +6,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../ui/Styles';
 import * as config  from '../../config/Config';
-import { Card, AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
+import { AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
 import '../../style/dhis2UiStyle.css';
 import { 
     metaDataUpdate,
@@ -159,14 +159,14 @@ class DataElementsTable extends React.Component {
   }
 
 
-  updateMapping(updateArray) {
+  async updateMapping(updateArray) {
     this.setState({
       loading: true, feedbackToUser: '',
     });
     for (let i = 0; i < updateArray.length; i++) { 
-      let j=0;
-      if(/*updateArray[i].value !== '' && */updateArray[i].value !== 'true' ){
-        getElementDetails(updateArray[i].id).then((response) => {
+
+      if( updateArray[i].value !== 'true' ){
+        await getElementDetails(updateArray[i].id).then((response) => {
             let customElementString = response.data;
             let jsonPayload = "";
             if(typeof customElementString.optionSet !=='undefined' ){
@@ -199,19 +199,20 @@ class DataElementsTable extends React.Component {
             }  
             metaDataUpdate('api/dataElements/'+updateArray[i].id, jsonPayload)
               .then((response) => {
-                //console.log("Console results: ", response.data);
+                if (updateArray[i].value !== '') {
+                  console.info(updateArray[i].value, "has updated" );
+                }                
               });
-            if(i === j ){
-              this.setState({
-                loading: false,
-              });
-              this.giveFeedbackToUser('success')
-              return
-            }
-          });
-        j++;           
+            
+        });           
       }
     }
+
+    this.setState({
+      loading: false,
+    });
+    this.giveFeedbackToUser('success')
+    return
   }
 
 

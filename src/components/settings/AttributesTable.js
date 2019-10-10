@@ -6,7 +6,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../ui/Styles';
 import * as config  from '../../config/Config';
-import { Card, AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
+import { AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
 import { 
     metaDataUpdate,
     getAttributeDetails,
@@ -156,11 +156,12 @@ class AttributesTable extends React.Component {
   
 
   updateMapping(updateArray) {
+
     this.setState({
       loading: true, feedbackToUser: '',
     });
     for (let i = 0; i < updateArray.length; i++) { 
-      let j=0;
+
       if(updateArray[i].value !== 'true' ) {
         getAttributeDetails(updateArray[i].id).then((response) => {
           let customAttributeString = response.data;
@@ -190,19 +191,22 @@ class AttributesTable extends React.Component {
           }  
           metaDataUpdate('api/trackedEntityAttributes/'+updateArray[i].id, jsonPayload)
             .then((response) => {
-              console.log("Console results: ", response.data);
+              if (updateArray[i].value !== '') {
+                  console.info(updateArray[i].value, "has updated" );
+              } 
           });
-          if(i === j ){
-            this.setState({
-              loading: false,
-            });
-            this.giveFeedbackToUser('success')
-            return
-          }  
+
         });
-        j++; 
-      }        
+          
+      }
+
+           
     }
+    this.setState({
+      loading: false,
+    });
+    this.giveFeedbackToUser('success')
+    return 
   }
 
 

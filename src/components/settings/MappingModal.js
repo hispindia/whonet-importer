@@ -6,9 +6,8 @@ import DataElementsTable from './DataElementsTable';
 import AttributesTable from './AttributesTable';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import Close from '@material-ui/icons/Close';
 import * as styleProps  from '../ui/Styles';
-import { Card, Modal, Button, ButtonStrip, TabBar, Tab  } from '@dhis2/ui-core';
+import { Modal, Button, ButtonStrip, TabBar, Tab  } from '@dhis2/ui-core';
 
 
 class MappingModal extends React.Component {

@@ -213,7 +213,6 @@ export const generateAmrId = async (orgUnitId, orgUnitCode) => {
     const newId = () =>
     orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
      let amrId = newId();
-    console.log({amrId});
     return get(
       request('api/events.json?', {
         fields: 'event',
@@ -221,29 +220,30 @@ export const generateAmrId = async (orgUnitId, orgUnitCode) => {
         options: [`orgUnit=${orgUnitId}`],
       })
     ).then( response =>{
-      if (typeof response.data.events =='undefined' || response.data.events.length == 0) {
+      if (typeof response.data.events === 'undefined' || response.data.events.length === 0) {
         return amrId;
       } 
     });
 }
-/*export const generateAmrId = async (orgUnitId, orgUnitCode) => {
+export const amrIdSqlView = async (orgUnitId, orgUnitCode) => {
+
     const newId = () =>
-        orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
+    orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
+     let amrId = newId();
 
-    let amrId = newId()
-    while (
-        (await get(
-            request('api/events.json?', {
-                fields: 'event',
-                filters: `${config.amrIdDataElement}:eq:${amrId}`,
-                options: [`orgUnit=${orgUnitId}`],
-            })
-        )).events.length !== 0
-    )
-        amrId = newId()
+    return get('api/sqlViews/joGfuhbHQUx/data?paging=false&var=orgunit:'+orgUnitId).then( response =>{
 
-    return amrId
-}*/
+        let result = response.data.listGrid.rows.filter(function (existingId) {
+          return existingId[0] === amrId;
+        });
+
+        if (typeof result === 'undefined' || result.length === 0) {
+          return amrId; // return newly generated id
+        } else {
+          return amrId+(Math.floor(Math.random() * 900) + 100); // generate and return new id
+        }
+    });
+}
 
 /**
 * Get data store

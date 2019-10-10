@@ -5,12 +5,10 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../../ui/Styles';
-import * as config  from '../../../config/Config';
-import { Card, AlertBar, CircularLoader } from '@dhis2/ui-core';
+import { AlertBar, CircularLoader } from '@dhis2/ui-core';
 import { 
     metaDataUpdate,
     getOptionDetails,
-    getPrograms,
     getDataStoreNameSpace,
     createDateStoreNameSpace,
     getOptionSets
@@ -22,7 +20,6 @@ class OptionsTable extends React.Component {
     this.state = {
       value   : '',
       loading : false,
-      optionSets: [],
       optionSets: [],
       orgUnitId: "",
       OrgUnitName: "",
@@ -108,11 +105,10 @@ class OptionsTable extends React.Component {
   * {optionSets} store the current state options array
   * {targetIndex} return the 
   * If there is data in the setting input text field, then update/ set the values `optionSets` state
-  * if {attributeValues} is empty, develop custom payload from configuration `config.metaAttributeName` & `config.metaAttributeUId` 
   */
   handleInputChange(e) {    
     const {id, value}  = e.target;
-    let {optionSets, dataStoreNamespace, mergedArrayData} = this.state;
+    let {mergedArrayData} = this.state;
     const targetIndex  = mergedArrayData.findIndex(datum => {
       return datum.id === id;
     });
@@ -139,10 +135,10 @@ class OptionsTable extends React.Component {
     let updateArray = e.target;
     const dataLength = updateArray.length;
     let updateOptionsPayload = [];
+
     for(let i=0; i< dataLength; i++) {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
-        let len = elementObj.length;
         for( let j=0; j < 1; j++  ) {
           await ( async ([columnName, columnValue], index ) => {
             if(updateArray[i].value !== '' ){

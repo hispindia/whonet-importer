@@ -1,6 +1,4 @@
 import React from 'react';
-//import Card from 'material-ui/Card/Card';
-import CardText from 'material-ui/Card/CardText';
 import * as styleProps  from '../ui/Styles';
 import * as config  from '../../config/Config';
 import Table from '@material-ui/core/Table';
@@ -8,7 +6,6 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import { Tabs, Tab } from '@dhis2/d2-ui-core';
 import { Card } from '@dhis2/ui-core';
 import { 
     getDataStoreNameSpace,
@@ -25,7 +22,6 @@ export default class CsvMappingColumns extends React.Component {
     }  
   }      
   async componentWillMount(){
-    let dsNameSpace = []; 
     if(this.props.settingType === 'lab'){
       await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
         this.state.dsNameSpace.push(response.data.elements);
@@ -43,7 +39,7 @@ export default class CsvMappingColumns extends React.Component {
     const classes = this.props;
     let mapCode, dataValues, loggerTitle, matchedColumns;
     let whonetFileData = Object.entries(this.props.csvData);    
-    const {dsNamespaceElements, dsNameSpace} = this.state;
+    const {dsNameSpace} = this.state;
 
     if(this.props.settingType === 'lab'){
       

@@ -1,20 +1,14 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import Papa from 'papaparse';
-import CardText from 'material-ui/Card/CardText';
-import { InputField } from '@dhis2/d2-ui-core';
 import MappingModal from '../components/settings/MappingModal';
 import * as config from '../config/Config';
 import * as styleProps from '../components/ui/Styles';
-import * as actionTypes from '../constants/actions.js';
 import { formatDate } from '../components/helpers/DateFormat';
 import { hash } from '../components/helpers/Hash';
 import LoggerComponent from '../components/logger/LoggerComponent';
 import CsvMappingColumns from '../components/logger/CsvMappingColumns';
 import ImportResults from '../components/import-results/ImportResults';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormControl from '@material-ui/core/FormControl';
-import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, CircularLoader } from '@dhis2/ui-core';
+import { Button, ButtonStrip, Card, Modal, CircularLoader } from '@dhis2/ui-core';
 import '../style/dhis2UiStyle.css';
 import {
   getPrograms,
@@ -25,9 +19,9 @@ import {
   checkOrgUnitInProgram,
   getOrgUnitDetail,
   generateAmrId,
+  amrIdSqlView,
   getDataStoreNameSpace,
   getElementDetails,
-  getOptionDetails,
   getOptionSetDetails,
 } from '../components/api/API';
 import { DropdownButton } from '@dhis2/ui-core/build/cjs/DropdownButton';
@@ -206,7 +200,6 @@ class WHONETFileReader extends React.Component {
     let teiPayloadString = {};
     let orgUnitId = this.props.orgUnitId;
     let trackedEntityJson, eventDate;
-    console.log(this.props.importFileType );
     if (this.props.importFileType === 'lab') {
       // Data store check
       await getDataStoreNameSpace(orgUnitId).then((response) => {
@@ -241,7 +234,7 @@ class WHONETFileReader extends React.Component {
             let csvColumnName  = splittedValue[0];
 
             // console.log({csvColumnName})
-            if (this.props.importFileType == 'whonet') {
+            if (this.props.importFileType === 'whonet') {
 
               // Elements filter from whonet code
               elementsFilterResult = this.state.dataElements.filter((element) => {
@@ -301,7 +294,6 @@ class WHONETFileReader extends React.Component {
                         let optionsDetail = osResponse.data.options;
                         for (let i = 0; i < optionsDetail.length; i++) {
 
-                          let optionName = optionsDetail[i].name;
                   // Options map filter from data store 
                           optionsFilterResult = this.state.dataStoreNamespaceOptions.filter(function(option) {
                             return option.mapCode === columnValue;
@@ -332,7 +324,7 @@ class WHONETFileReader extends React.Component {
               }
 
               // Attributes filter from data store
-              attributesFilterResult = this.state.dataStoreNamespaceAttributes.filter(function (attribute) {
+              attributesFilterResult = dataStoreNamespaceAttributes.filter(function (attribute) {
                 return attribute.mapCode === csvColumnName;
               });
             }
@@ -353,25 +345,23 @@ class WHONETFileReader extends React.Component {
                 attributeValue = columnValue.replace(/[=><_]/gi, '');
               }
 
-              if (this.props.importFileType == 'lab') {
+              if (this.props.importFileType === 'lab') {
               // Options checking for attributes
                 await getAttributeDetails(attributeId).then((attributeResponse) => {
                 
-                if(typeof attributeResponse!== 'undefined' && typeof attributeResponse.data.optionSet !== 'undefined'){
+                if(typeof attributeResponse !== 'undefined' && typeof attributeResponse.data.optionSet !== 'undefined'){
 
                   let attributeId = attributeResponse.data.id;
                   let optionSetId = attributeResponse.data.optionSet;
                   
                 // Get option sets with all options
                   getOptionSetDetails(optionSetId.id).then((osResponse) => {
-                    if(typeof osResponse!== 'undefined'){
+                    if(typeof osResponse !== 'undefined'){
 
                       let optionsDetail = osResponse.data.options;
                       for (let i = 0; i < optionsDetail.length; i++) {
-
-                        let optionName = optionsDetail[i].name;
                 // Options map filter from data store 
-                        optionsFilterResult = this.state.dataStoreNamespaceOptions.filter(function(option) {
+                        optionsFilterResult = dataStoreNamespaceOptions.filter(function(option) {
                           return option.mapCode === columnValue;
                         });
                         if(optionsFilterResult.length >= 1){
@@ -425,6 +415,8 @@ class WHONETFileReader extends React.Component {
 
         /**
         * Generates AMR Id by the combination of OU code and a random integer value.
+        * AmrID is unique for all lab for all record
+        * If the newly generated amrid is matched with existing one the new one will be re-genreated and return for this record
         * @eventsPayloadUpdated returns updated json payload with dynamically generated amrid
         */
         let orgUnitCode;
@@ -434,7 +426,7 @@ class WHONETFileReader extends React.Component {
         } else {
           orgUnitCode = "";
         }
-        const getAmrId = await generateAmrId(orgUnitId, orgUnitCode);
+        const getAmrId = await amrIdSqlView(orgUnitId, orgUnitCode);
         let amrIdPayload = [{
           "dataElement": config.amrIdDataElement,
           "value": getAmrId
@@ -626,7 +618,7 @@ class WHONETFileReader extends React.Component {
 
 
   render() {
-    let importLoader, modal, userAuthority, teiResponse, logger, multipleLabModal, requiredColumns;
+    let importLoader, modal, userAuthority, teiResponse, logger;
     if (this.state.loading) {
       importLoader = <CircularLoader className='circularLoader'/>
     }
@@ -640,7 +632,7 @@ class WHONETFileReader extends React.Component {
     /**
     * Multi-lab setting
     * @settingType-multipleLab for all level of users access
-    * @multipleLabModal- returns the modal for multiple lab meta attributes setting 
+    * @MappingModal- returns the modal for lab meta attributes setting 
     */
     if (this.state.isMultipleLabSettingModalOpen) {
       modal = <MappingModal isModalOpen={this.state.isMultipleLabSettingModalOpen} handleModal={this.handleMultipleLabSettingModal} settingType={config.settingType} orgUnitId={this.props.orgUnitId} orgUnitName={this.props.orgUnit} />
@@ -702,19 +694,5 @@ class WHONETFileReader extends React.Component {
     );
   }
 }
-/**
-* Redux framework has introduced
-* This below section is under development
-*/
-const mapStateToProps = state => {
-  return {
-    ctr: state.counter,
-  };
-};
 
-const mapToDispatchToProps = (dispatch) => {
-  return {
-    fileUploadPreAlert: () => dispatch({ type: actionTypes.UPLOAD_PRE_ALERT }),
-  };
-}
-export default connect(mapStateToProps, mapToDispatchToProps)(WHONETFileReader);
+export default WHONETFileReader;

@@ -4,10 +4,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
 import * as styleProps  from '../../ui/Styles';
-import * as config  from '../../../config/Config';
-import { Card, AlertBar, CircularLoader } from '@dhis2/ui-core';
+import { AlertBar, CircularLoader } from '@dhis2/ui-core';
 import { 
     metaDataUpdate,
     getAttributeDetails,
@@ -96,11 +94,10 @@ class Attributes extends React.Component {
   * {attributes} store the current state elements array
   * {targetIndex} return the 
   * If there is data in the setting input text field, then update/ set the values `attributes` state
-  * if {attributeValues} is empty, develop custom payload from configuration `config.metaAttributeName` & `config.metaAttributeUId` 
   */
   handleInputChange(e) {    
     const {id, value}  = e.target;
-    let {attributes, dataStoreNamespace, mergedArrayData} = this.state;
+    let {mergedArrayData} = this.state;
     const targetIndex  = mergedArrayData.findIndex(datum => {
       return datum.id === id;
     });
@@ -128,13 +125,13 @@ class Attributes extends React.Component {
       loading: true,
     });
     e.preventDefault();
-    let updateArray = e.target;
+    let updateArray  = e.target;
     const dataLength = updateArray.length;
     let updateAttributePayload = [];
+
     for(let i=0; i< dataLength; i++) {
       await ( async(currentData, currentIndex) => {
         const elementObj = Object.entries(currentData);
-        let len = elementObj.length;
         for( let j=0; j < 1; j++  ) {
           await ( async ([columnName, columnValue], index ) => {
             if(updateArray[i].value !== '' ){
@@ -194,7 +191,7 @@ class Attributes extends React.Component {
 
   renderAttributes() {
     const classes = this.props;
-    let {attributes, dataStoreNamespace, mergedArrayData} = this.state;
+    let {mergedArrayData} = this.state;
     let content = mergedArrayData.map(datum => {
       return (
         <TableRow key={datum.id}>
