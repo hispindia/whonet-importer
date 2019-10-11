@@ -166,9 +166,31 @@ class WHONETFileReader extends React.Component {
   */
   generateCsvMappingTable = (input) => {
     let csvData = input.data;
+    
+    // Registration or patient id checking for lab and whonet file 
+    let patientId =Object.entries(csvData[0]).map( (value, key) =>{
+      let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
+      let csvColumnName  = splittedValue[0];
+      if (csvColumnName === config.patientIdColumn) {
+        return csvColumnName;
+      }
+    });
+    let result =patientId.filter(function(element) {            
+      return element === config.patientIdColumn;                         
+    });
+
+    if (result.length == 0) {
+      this.giveUserFeedback("Sorry! Patient Id or registration number is missing in your selected file. Please add 'PATIENT_ID' as coulmn head in your file. The below mapping are found in your file.");
+      this.setState({
+        disableImportButton: true
+      });    
+    }
+
     this.setState({
       mappingCsvData: csvData[0]
     });
+
+    
   }
   /**
   * Parse select csv file
@@ -649,6 +671,7 @@ class WHONETFileReader extends React.Component {
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} attributes={this.state.attributes} settingType={this.props.importFileType} orgUnitId={this.props.orgUnitId} />;
       } else { 
         logger = <CsvMappingColumns csvData={this.state.mappingCsvData} dataElements={this.state.dataElements} attributes={this.state.attributes} settingType={this.props.importFileType} />;
+
       }
     }
     /**

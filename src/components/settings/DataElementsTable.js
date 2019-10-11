@@ -168,15 +168,21 @@ class DataElementsTable extends React.Component {
       if( updateArray[i].value !== 'true' ){
         await getElementDetails(updateArray[i].id).then((response) => {
             let customElementString = response.data;
+
             let jsonPayload = "";
             if(typeof customElementString.optionSet !=='undefined' ){
               jsonPayload = JSON.stringify({
-                "name": customElementString.name,
-                "shortName": customElementString.shortName,
+                "name"      : customElementString.name,
+                "shortName" : customElementString.shortName,
                 "aggregationType": customElementString.aggregationType,
                 "domainType": customElementString.domainType,
-                "valueType": customElementString.valueType,
-                "code": updateArray[i].value,
+                "valueType" : customElementString.valueType,
+                "code"      : updateArray[i].value,
+                "displayName": customElementString.displayName,
+                "displayShortName": customElementString.displayShortName,
+                "displayFormName" : customElementString.displayFormName,
+                "formName"        : customElementString.formName,
+                "url"      : customElementString.url,
                 "optionSet": {
                     "id": customElementString.optionSet.id
                 },
@@ -186,12 +192,17 @@ class DataElementsTable extends React.Component {
               });
             } else {
               jsonPayload = JSON.stringify({
-                "name": customElementString.name,
+                "name"     : customElementString.name,
                 "shortName": customElementString.shortName,
                 "aggregationType": customElementString.aggregationType,
-                "domainType": customElementString.domainType,
-                "valueType": customElementString.valueType,
+                "domainType" : customElementString.domainType,
+                "valueType"  : customElementString.valueType,
                 "code": updateArray[i].value,
+                "displayName": customElementString.displayName,
+                "displayShortName": customElementString.displayShortName,
+                "displayFormName" : customElementString.displayFormName,
+                "formName" : customElementString.formName,
+                "url" : customElementString.url,
                 "categoryCombo": {
                     "id": customElementString.categoryCombo.id
                 }
