@@ -167,54 +167,19 @@ class DataElementsTable extends React.Component {
 
       if( updateArray[i].value !== 'true' ){
         await getElementDetails(updateArray[i].id).then((response) => {
-            let customElementString = response.data;
+          let customElementString = response.data;
 
-            let jsonPayload = "";
-            if(typeof customElementString.optionSet !=='undefined' ){
-              jsonPayload = JSON.stringify({
-                "name"      : customElementString.name,
-                "shortName" : customElementString.shortName,
-                "aggregationType": customElementString.aggregationType,
-                "domainType": customElementString.domainType,
-                "valueType" : customElementString.valueType,
-                "code"      : updateArray[i].value,
-                "displayName": customElementString.displayName,
-                "displayShortName": customElementString.displayShortName,
-                "displayFormName" : customElementString.displayFormName,
-                "formName"        : customElementString.formName,
-                "url"      : customElementString.url,
-                "optionSet": {
-                    "id": customElementString.optionSet.id
-                },
-                "categoryCombo": {
-                    "id": customElementString.categoryCombo.id
-                }
-              });
-            } else {
-              jsonPayload = JSON.stringify({
-                "name"     : customElementString.name,
-                "shortName": customElementString.shortName,
-                "aggregationType": customElementString.aggregationType,
-                "domainType" : customElementString.domainType,
-                "valueType"  : customElementString.valueType,
-                "code": updateArray[i].value,
-                "displayName": customElementString.displayName,
-                "displayShortName": customElementString.displayShortName,
-                "displayFormName" : customElementString.displayFormName,
-                "formName" : customElementString.formName,
-                "url" : customElementString.url,
-                "categoryCombo": {
-                    "id": customElementString.categoryCombo.id
-                }
-              });
-            }  
-            metaDataUpdate('api/dataElements/'+updateArray[i].id, jsonPayload)
-              .then((response) => {
-                if (updateArray[i].value !== '') {
-                  console.info(updateArray[i].value, "has updated" );
-                }                
-              });
-            
+          let jsonPayload = JSON.stringify({
+            ...customElementString,
+           "code" : updateArray[i].value,
+          });
+           
+          metaDataUpdate('api/dataElements/'+updateArray[i].id, jsonPayload)
+            .then((response) => {
+            if (updateArray[i].value !== '') {
+              console.info(updateArray[i].value, "has updated" );
+            }                
+          });            
         });           
       }
     }

@@ -164,43 +164,21 @@ class AttributesTable extends React.Component {
 
       if(updateArray[i].value !== 'true' ) {
         getAttributeDetails(updateArray[i].id).then((response) => {
+
           let customAttributeString = response.data;
-          let jsonPayload = "";
-          if(typeof customAttributeString.optionSet !=='undefined' ){
-            jsonPayload = JSON.stringify({
-              "name": customAttributeString.name,
-              "shortName": customAttributeString.shortName,
-              "aggregationType": customAttributeString.aggregationType,
-              "domainType": customAttributeString.domainType,
-              "valueType": customAttributeString.valueType,
-              "code": updateArray[i].value,
-              "optionSet": {
-                    "id": customAttributeString.optionSet.id
-                }
-            });
-          } 
-          else {
-            jsonPayload = JSON.stringify({
-              "name": customAttributeString.name,
-              "shortName": customAttributeString.shortName,
-              "aggregationType": customAttributeString.aggregationType,
-              "domainType": customAttributeString.domainType,
-              "valueType": customAttributeString.valueType,
-              "code": updateArray[i].value
-            });
-          }  
+          let jsonPayload = JSON.stringify({
+            ...customAttributeString,
+           "code" : updateArray[i].value,
+          });
+            
           metaDataUpdate('api/trackedEntityAttributes/'+updateArray[i].id, jsonPayload)
             .then((response) => {
               if (updateArray[i].value !== '') {
                   console.info(updateArray[i].value, "has updated" );
               } 
           });
-
-        });
-          
-      }
-
-           
+        });          
+      }           
     }
     this.setState({
       loading: false,
