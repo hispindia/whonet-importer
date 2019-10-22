@@ -8,7 +8,7 @@ import { OrgUnitTree } from '@hisp-amr/org-unit-tree';
 import HelpModal from '../../components/settings/HelpModal';
 import MappingModal from '../settings/MappingModal';
 import * as config from '../../config/Config';
-
+import FileImport from './FileImport';
 
 
 export default class Sidebar extends React.Component {
@@ -22,6 +22,7 @@ export default class Sidebar extends React.Component {
 
 	handleOrgUnitSelect = ({id, displayName}) => {
 		this.setState({userOrgUnitId : id, userOrgUnitName: displayName})
+		this.props.setOrgUnit(id, displayName)
 	}
 
 
@@ -99,6 +100,10 @@ export default class Sidebar extends React.Component {
 					<div className='fileBox'>
 						
 					</div>
+					<FileImport 
+						importFileType={this.state.importFileType} 
+						handleFileUpload = {this.props.handleFileUpload}
+					/>
 					<Button className='sidebarButton' small onClick={this.handleHelpModal} >Help</Button>					
 				</aside>
 				<WhonetController 

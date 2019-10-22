@@ -206,6 +206,7 @@ class WHONETFileReader extends React.Component {
     let orgUnitId = this.props.orgUnitId;
     let trackedEntityJson, eventDate;
 
+    
     if (this.state.importFileType === 'multiLab') {
       // Data store check
       await getDataStoreNameSpace(orgUnitId).then((response) => {
@@ -217,6 +218,7 @@ class WHONETFileReader extends React.Component {
       }).catch(error => this.setState({ error: true }));
       
     }
+    
     const dataStoreNamespaceElements   = this.state.dataStoreNamespaceElements;
     const dataStoreNamespaceAttributes = this.state.dataStoreNamespaceAttributes;
     const dataStoreNamespaceOptions    = this.state.dataStoreNamespaceOptions;
