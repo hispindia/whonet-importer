@@ -50,8 +50,7 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
               });
               return {"teiId": teiId, "result": matchResult.length};
           }           
-      })
-      .catch(function (error) {
+      }).catch(function (error) {
         if(typeof error.response !== 'undefined'){
           console.log(error.response);
         }
@@ -59,17 +58,23 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
     }  
 };
 export const getMe = async () => {
-    // return await get('api/me.json?fields=id,name,organisationUnits[:id,name,level,children[id,name,level,children[id,name,level,children[id,name,level]]]]&order:name:asc')
-    return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
+  return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
 };
 
 export const createTrackedEntity = async (trackedEntityJson) => {
+
     return axios(config.baseUrl+'api/trackedEntityInstances', {
         method: 'POST',
         headers: config.fetchOptions.headers,
         data: trackedEntityJson,
         withCredentials: true,        
-    }) 
+    }).then(response => {
+       return response;
+     })
+     .catch(error => {
+       return error.response.data.response;
+     }); 
+
 };
 
 /**
@@ -134,7 +139,7 @@ export const getElementDetails = async (elementId) => {
 			return response;
 		})
 		.catch(function (error) {
-			console.log(error);
+			console.log("error: ",error);
 		});
 };
 
@@ -244,8 +249,7 @@ export const generateAmrId = async (orgUnitId, orgUnitCode) => {
 * @returns {string} org unit detail
 */
 export const getDataStoreNameSpace = async (key) => {
-  return await get('api/dataStore/whonet/'+key);
-   
+  return await get('api/dataStore/whonet/'+key);   
 };
 
 /**
