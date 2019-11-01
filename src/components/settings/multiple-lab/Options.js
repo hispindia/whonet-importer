@@ -171,7 +171,7 @@ class OptionsTable extends React.Component {
       await createDateStoreNameSpace('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify(this.state.orgUnitId)).then(info=>{
           console.log("Info: ", info.data);
       });
-      await metaDataUpdate('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify({"elements": [], "attributes": [], "options": updateOptionsPayload }) )
+      await metaDataUpdate('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify({"elements": [], "attributes": [], "options": updateOptionsPayload, "eventDate":[] }) )
       .then((response) => {
         if(response.data.httpStatus === "OK" ){
           this.setState({

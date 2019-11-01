@@ -173,7 +173,6 @@ class DataElementsTable extends React.Component {
             ...customElementString,
            "code" : updateArray[i].value,
           });
-           
           metaDataUpdate('api/dataElements/'+updateArray[i].id, jsonPayload)
             .then((response) => {
             if (updateArray[i].value !== '') {

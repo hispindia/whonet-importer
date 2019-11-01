@@ -23,6 +23,8 @@ import {
   getDataStoreNameSpace,
   getElementDetails,
   getOptionSetDetails,
+  getMultipleElements,
+  getMultipleAttributes,
 } from '../components/api/API';
 import { DropdownButton } from '@dhis2/ui-core/build/cjs/DropdownButton';
 
@@ -62,6 +64,12 @@ class WHONETFileReader extends React.Component {
       settingsDropDown: "",
       feedBackToUser: undefined,
       disableImportButton: true,
+      eventDate: "",
+      requiredColumnsDe: [],
+      requiredColumnsAtt: [],
+      requiredColumnsDeValue: [],
+      requiredColumnsAttValue: [],
+
     };
     this.uploadCSVFile = this.uploadCSVFile.bind(this);
 
@@ -90,6 +98,7 @@ class WHONETFileReader extends React.Component {
       }
     }
 
+    // List of all data elements
     let self = this;
     await getPrograms().then((response) => {
       if (typeof response !== 'undefined') {
@@ -100,6 +109,7 @@ class WHONETFileReader extends React.Component {
 
     });
 
+    // List of all attributes
     await getAttributes().then((response) => {
       if (typeof response !== 'undefined') {
         self.setState({
@@ -108,22 +118,147 @@ class WHONETFileReader extends React.Component {
       }
     });
 
-    /*await getOptions().then((response) => {
-      if (typeof response !== 'undefined') {
-        self.setState({
-          options: response.data.trackedEntityAttributes
+    // Get required fields from namespace
+    await getDataStoreNameSpace("requiredFields").then((response) => {
+      this.setState({
+        eventDate : response.data.eventDate,      
+        requiredColumnsDe : response.data.reqElements,      
+        requiredColumnsAtt : response.data.reqAttributes,      
+      }); 
+    }).catch(error => this.setState({error: true}));
+
+    // Required mapping message in alert box in window load
+    this.requiredFields().then((value)=>{
+      let requiredVal = value.map( (data, i) =>{
+          if (typeof data.code == 'undefined') return <li key={i}> Mapping is required for {data.name}</li>
         });
-      }
-    });*/
+      requiredVal.map((info)=>{
+        if (typeof info !== 'undefined') {
+          this.giveUserFeedback(requiredVal)
+        }
+      })  
+ 
+    }); // End of required alert
   }
 
+  /**
+  * @required datastore value - { "eventDate": "eventDate", "reqElements": ["JRUa0qYKQDF","SaQe2REkGVw","mp5MeJ2dFQz"],"reqAttributes": ["nFrlz82c6jS"]}  
+  * @requiredColumnsDeValue - store the required data elements name and code
+  * @requiredColumnsAttValue - store the required attributes name and code
+  * @messaageArr - returns missing mapped code list
+  */
+  async requiredFields() {
 
+    let eventMessage = new Array();
+    let deMessage   = new Array();
+    let messaageArr = new Array();
+
+    try {       
+
+      // Missing event date alert
+      if (this.state.eventDate[0].length === 0 ) {  
+        eventMessage = [{name: "Event date"}];
+      }
+      
+      // Missing elements alert
+      await getMultipleElements(this.state.requiredColumnsDe).then((response) => {
+        deMessage = eventMessage.concat(response.data.dataElements);
+        this.setState({
+          disableImportButton: true,
+          requiredColumnsDeValue: response.data.dataElements
+        });      
+      });
+
+      //Missing attributes alert
+      await getMultipleAttributes(this.state.requiredColumnsAtt).then((response) => {
+        messaageArr = deMessage.concat(response.data.trackedEntityAttributes);
+        this.setState({
+          disableImportButton: true,
+          requiredColumnsAttValue: response.data.trackedEntityAttributes
+        });      
+      });
+
+    } catch (err) {
+      console.log(err);
+    }
+    
+    return messaageArr;
+  }
+
+  /**
+  * @requiredImportFileHeader() finds the missing columns from the import file
+  * @mappingMessageArr-Array contains the mapped columns 
+  * @requiredColsArr-Array contains the all required fileds from datastore for data elements, attributes and event date, it has merged the datastore configuration for required fields
+  * 
+  */
+  async requiredImportFileHeader(csvData){
+
+    let mappingMessageArr = new Array();
+    let requiredColsArr   = new Array();
+    let dataELResArr  = this.state.requiredColumnsDeValue;
+    let dataAttResArr = this.state.requiredColumnsAttValue;
+
+    let margedArrDe = dataELResArr.concat(dataAttResArr);
+    requiredColsArr = margedArrDe.concat([{name: "Event Date" ,code: this.state.eventDate[0]}]);
+
+    // Iterate and check the CSV file
+      Object.entries(csvData[0]).map( (value, key) =>{
+        let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
+        let csvColumnName  = splittedValue[0];
+          // Check elements 
+          dataELResArr.filter(function(element) {   
+            if(element.code === csvColumnName){
+              mappingMessageArr.push(element);
+            }                          
+          });
+
+          // Check attributes
+          dataAttResArr.filter(function(attribute) {   
+            if(attribute.code === csvColumnName){
+              mappingMessageArr.push(attribute);
+            }                          
+          });
+
+          // Check event date
+          if(this.state.eventDate[0] === csvColumnName){
+              mappingMessageArr.push({name: "Event Date", code: this.state.eventDate[0]});
+          }
+      });
+
+    // Compare two arrays-required columns and csv mapped     
+      function comparer(otherArray){
+        return function(current){
+          return otherArray.filter(function(other){            
+            return other.code === current.code            
+          }).length == 0;
+        }
+      }
+      // console.log({requiredColsArr})
+      // console.log({mappingMessageArr})
+
+    // Find missing columns
+      var requiredColsArrResult = requiredColsArr.filter(comparer(mappingMessageArr));
+      var mappingMessageArrResult = mappingMessageArr.filter(comparer(requiredColsArr));
+      let resultMissingColumn = requiredColsArrResult.concat(mappingMessageArrResult);
+
+      if (resultMissingColumn.length > 0) {
+
+        this.giveUserFeedback( resultMissingColumn.map((value, index)=>{return <li key={index}> Missing required column name is {value.name } and code is {value.code} in the selected file!</li>}) );
+        this.setState({
+          disableImportButton: true
+        });
+
+      } // End of missing columns check    
+      
+  }
+
+  /**
+  * Selected file format checking
+  * Accept only .csv file format
+  * Update setter 
+  * @{generateCsvMappingTable} returns the parsed records of selected csv file
+  */
   handleChangeFileUpload = (event) => {
-    /**
-    * Selected file format checking
-    * Accept only .csv file format
-    * Update setter 
-    */
     if (typeof event.target.files[0] !== 'undefined') {
       let fileType = this.props.importFileType; 
 
@@ -147,9 +282,7 @@ class WHONETFileReader extends React.Component {
           });
 
         }
-        /**
-        * @{generateCsvMappingTable} returns the parsed records of selected csv file
-        */
+        
         Papa.parse(event.target.files[0], {
           complete: this.generateCsvMappingTable,
           header: true
@@ -158,23 +291,26 @@ class WHONETFileReader extends React.Component {
       }  
     }
   }
-
-
   /**
   * @input the selected parsed csv file data
   * @{mappingCsvData} set CSV file columns
   */
+  
   generateCsvMappingTable = (input) => {
-    let csvData = input.data;
+    let csvData = input.data; 
     
+    this.requiredImportFileHeader(csvData);
+
+
     // Registration or patient id checking for lab and whonet file 
-    let patientId =Object.entries(csvData[0]).map( (value, key) =>{
+    /*let patientId =Object.entries(csvData[0]).map( (value, key) =>{
       let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
       let csvColumnName  = splittedValue[0];
       if (csvColumnName === config.patientIdColumn) {
         return csvColumnName;
       }
     });
+
     let result =patientId.filter(function(element) {            
       return element === config.patientIdColumn;                         
     });
@@ -184,7 +320,7 @@ class WHONETFileReader extends React.Component {
       this.setState({
         disableImportButton: true
       });    
-    }
+    }*/
 
     this.setState({
       mappingCsvData: csvData[0]
@@ -222,6 +358,7 @@ class WHONETFileReader extends React.Component {
     let teiPayloadString = {};
     let orgUnitId = this.props.orgUnitId;
     let trackedEntityJson, eventDate;
+    
     if (this.props.importFileType === 'lab') {
       // Data store check
       await getDataStoreNameSpace(orgUnitId).then((response) => {

@@ -142,6 +142,18 @@ export const getElementDetails = async (elementId) => {
 			console.log("error: ",error);
 		});
 };
+/**
+* @retunrs multiple element detail
+*/
+export const getMultipleElements = async (elementArray) => {
+    return await get('api/dataElements.json?filter=id:in:['+elementArray+']&fields=name,code')
+      .then(function (response) {       
+      return response;
+    })
+    .catch(function (error) {
+      console.log("error: ",error);
+    });
+};
 
 /**
 * @retunrs single attribute detail
@@ -154,6 +166,19 @@ export const getAttributeDetails = async (attributeId) => {
 		.catch(function (error) {
 			console.log(error);
 		});
+};
+
+/**
+* @retunrs single attribute detail
+*/
+export const getMultipleAttributes = async (attributeArray) => {
+    return await get('api/trackedEntityAttributes.json?filter=id:in:['+attributeArray+']&fields=name,code')    
+      .then(function (response) {       
+      return response;
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
 };
 /**
 * Category Options

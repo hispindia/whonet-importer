@@ -156,7 +156,7 @@ class Attributes extends React.Component {
       await createDateStoreNameSpace('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify(this.state.orgUnitId)).then(info=>{
           console.log("Info: ", info.data);
       });
-      await metaDataUpdate('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify({"elements": [],"attributes": updateAttributePayload, "options": []}) )
+      await metaDataUpdate('api/dataStore/whonet/'+this.state.orgUnitId, JSON.stringify({"elements": [],"attributes": updateAttributePayload, "options": [], "eventDate":[]}) )
       .then((response) => {
         if(response.data.httpStatus === "OK" ){
           this.setState({
