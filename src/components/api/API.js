@@ -43,7 +43,7 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
       }))
       .then(function (response) {
           if(typeof response.data.trackedEntityInstances !== 'undefined'){
-              duplicateValue = response.data.trackedEntityInstances[0].attributes;     
+              duplicateValue = response.data.trackedEntityInstances[0].attributes;
               let teiId = response.data.trackedEntityInstances[0].trackedEntityInstance;
               matchResult = duplicateValue.filter(function(data){
                   return data.value === input;
@@ -63,7 +63,7 @@ export const getMe = async () => {
 
 export const createTrackedEntity = async (trackedEntityJson) => {
 
-    return axios(config.baseUrl+'api/trackedEntityInstances', {
+    return axios(config.baseUrl+'api/trackedEntityInstances?strategy=CREATE_AND_UPDATE', {
         method: 'POST',
         headers: config.fetchOptions.headers,
         data: trackedEntityJson,
