@@ -8,14 +8,14 @@ import { OrgUnitTree } from '@hisp-amr/org-unit-tree';
 import HelpModal from '../../components/settings/HelpModal';
 import MappingModal from '../settings/MappingModal';
 import * as config from '../../config/Config';
-import FileImport from './FileImport';
+import FilePicker from './FilePicker';
 
 
 export default class Sidebar extends React.Component {
 	state = {
       	userOrgUnitId  : [],
 		userOrgUnitName: '',
-		feedBackToUser: '',
+		modal: '',
 		importFileType: 'whonet',		
 	}		
 	
@@ -28,54 +28,62 @@ export default class Sidebar extends React.Component {
 
 	handleMappingSettings = () => {
 		if (this.state.importFileType === 'whonet') {
-			this.setState({feedBackToUser: 
+			this.setState({modal: 
 				<MappingModal isModalOpen='true' handleModal={this.handleSettingModal} 
 				settingType="whonet" /> })
+			this.props.setImportFileType('whonet')
 		}
 		else {
-			this.setState({feedBackToUser: 
+			this.setState({modal: 
 				<MappingModal isModalOpen='true' handleModal={this.handleSettingModal} 
 				settingType='multiLab' orgUnitId={this.state.userOrgUnitId} 
 				orgUnitName={this.state.userOrgUnitName} />})	
+			this.props.setImportFileType('multiLab')			
 		}
 	}
 
 
 	handleSettingModal = () => {
 		this.setState({
-		  feedBackToUser: '',
+		  modal: '',
 		})
 	  }
 
 	
 	handleHelpModal = () => {
-		if (this.state.feedBackToUser === '') {
+		if (this.state.modal === '') {
 			this.setState({
-				feedBackToUser: <HelpModal open handleModal={this.handleHelpModal} />
+				modal: <HelpModal open handleModal={this.handleHelpModal} />
 			})
 		}
 		else {
-			this.setState({feedBackToUser: ''})
+			this.setState({modal: ''})
 		}
 	}
 
 
 	handleTreeError = () => {
 		this.setState({
-			feedBackToUser:
+			modal:
 			  <Modal small open>
 				<Modal.Content>Org. unit tree would not load. </Modal.Content>
-				<Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
+				<Modal.Actions><Button onClick={() => this.setState({ modal: '' })}>Close</Button></Modal.Actions>
 			  </Modal>
 		  });
 	}
 
 
+	handleImportFileType = (type) => {
+		this.setState({importFileType: type})
+		this.props.setImportFileType(type)
+	}
+
+
 	render () {
 		return (
-      		<div className="pageContainer">
-				{this.state.feedBackToUser}
-				<aside className="sideBar">
+      		<div>
+				{this.state.modal}
+				<div>
 					<div className="treeBox">
 						<p>Organization Unit</p>
 						<OrgUnitTree onSelect={this.handleOrgUnitSelect} onError={this.handleTreeError} className="orgUnitTreeSpace"/>
@@ -85,13 +93,15 @@ export default class Sidebar extends React.Component {
 					<Radio 
 						className='leftRadioButton'
 						label="Whonet" 
-						onChange={() => this.setState({importFileType: 'whonet'})} 
+						//onChange={() => this.setState({importFileType: 'whonet'})} 
+						onChange={() => this.handleImportFileType('whonet')}
 						value="whonet" 
 						checked={this.state.importFileType==='whonet'}
 						/>
 					<Radio
 						label="Lab"
-						onChange={() => this.setState({importFileType: 'lab'})} 
+						//onChange={() => this.setState({importFileType: 'lab'})} 
+						onChange={() => this.handleImportFileType('lab')}						
 						value="lab"
 						checked={this.state.importFileType==='lab'}
 					/> 
@@ -100,18 +110,18 @@ export default class Sidebar extends React.Component {
 					<div className='fileBox'>
 						
 					</div>
-					<FileImport 
+					<FilePicker 
 						importFileType={this.state.importFileType} 
-						handleFileUpload = {this.props.handleFileUpload}
+						handleFilePick = {this.props.handleFilePick}
 					/>
 					<Button className='sidebarButton' small onClick={this.handleHelpModal} >Help</Button>					
-				</aside>
-				<WhonetController 
+				</div>
+				{/*<WhonetController 
 				  	importFileType={this.state.importFileType} 
 				  	d2={this.props.d2} 
 				  	orgUnitId={this.state.userOrgUnitId} 
 				  	orgUnit={this.state.userOrgUnitName}
-				/>
+				/>*/}
       		</div>
 		)
 	}

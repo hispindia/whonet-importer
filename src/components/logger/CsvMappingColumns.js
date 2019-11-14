@@ -93,7 +93,7 @@ export default class CsvMappingColumns extends React.Component {
 
           if(elFilterResult.length > 0){
             mapCode = elFilterResult[0].dataElement.code;
-            console.log({mapCode});
+            //console.log({mapCode});
           } else if(attrFilterResult.length > 0){
             mapCode = attrFilterResult[0].code;
           } else {

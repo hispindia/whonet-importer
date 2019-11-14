@@ -139,7 +139,6 @@ class WHONETFileReader extends React.Component {
       } else if (splittedName !== 'csv') {
         this.giveUserFeedback("Sorry! Please upload correct file format! Accepted file fortmat is CSV. Your selected file name: " + event.target.files[0].name + " Last Modified: " + event.target.files[0].lastModified + " Size: " + event.target.files[0].size + " File type: " + event.target.files[0].type);
       } else {
-
         this.setState({
           csvfile: event.target.files[0],
           fileFormatValue: splittedName
@@ -170,9 +169,8 @@ class WHONETFileReader extends React.Component {
   * @{mappingCsvData} set CSV file columns
   */
   generateCsvMappingTable = (input) => {
-    let csvData = input.data;
     this.setState({
-      mappingCsvData: csvData[0]
+      mappingCsvData: input.data[0]
     });
   }
   /**

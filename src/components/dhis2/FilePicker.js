@@ -3,7 +3,7 @@ import { Button } from '@dhis2/ui-core';
 import Papa from 'papaparse';
 
 
-class FileImport extends Component {
+class FilePicker extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -12,7 +12,7 @@ class FileImport extends Component {
     }
 
 
-    handleChangeFileUpload = (event) => {
+    handleChangeFilePick = (event) => {
         /**
         * Selected file format checking
         * Accept only .csv file format
@@ -31,17 +31,12 @@ class FileImport extends Component {
               csvfile: event.target.files[0],
               fileFormatValue: splittedName
             });
-            /**
-            * @{generateCsvMappingTable} returns the parsed records of selected csv file
-            */
             Papa.parse(event.target.files[0], {
-              complete: this.generateCsvMappingTable,
+              complete: this.props.handleFilePick,
               header: true
             });
-            console.log("Your selected file: ", event.target.files[0].name);
           }  
         }
-        this.props.handleFileUpload(this.csvfile)
       }
 
 
@@ -55,7 +50,7 @@ class FileImport extends Component {
             }}
             name="file"
             placeholder={null}
-            onChange={this.handleChangeFileUpload}
+            onChange={this.handleChangeFilePick}
             accept=".csv"
             />
         );
@@ -63,4 +58,4 @@ class FileImport extends Component {
 }
 
 
-export default FileImport;
+export default FilePicker;

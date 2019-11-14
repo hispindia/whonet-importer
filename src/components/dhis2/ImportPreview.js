@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import CsvMappingColumns from '.././logger/CsvMappingColumns';
+import {getPrograms, getAttributes} from '.././api/API';
 import { Button, ButtonStrip, Menu, SplitButton, MenuItem, Card, Modal, CircularLoader } from '@dhis2/ui-core';
 
 
@@ -6,45 +8,49 @@ class ImportPreview extends Component {
     constructor(props) {
         super(props);
         this.state = {
-           
+           filePreview: undefined, 
+           attributes: '',
+           dataElements: '',
         };
     }
 
 
-    fileUploadPreAlert = () => {
-        if (typeof this.props.orgUnitId === 'undefined' || this.props.orgUnitId === null || this.props.orgUnitId === '') {
-          this.giveUserFeedback('Please select an org. unit')
-        } else if (typeof this.state.csvfile === 'undefined') {
-          this.giveUserFeedback('Please select a file')
-        } 
-        else if (this.state.fileFormatValue !== 'csv') {
-          this.giveUserFeedback('This file does not have a valid file format. The valid file format is csv.')
-        } 
-        else {
-            this.setState({
-              feedBackToUser:
-                <Modal small open>
-                  <Modal.Content>Are you sure you want to upload this file?</Modal.Content>
-                  <Modal.Actions>
-                    <ButtonStrip>
-                      <Button onClick={() => this.setState({ feedBackToUser: '' })}>Cancel</Button>
-                      <Button primary onClick={this.handleFileUpload}>Yes</Button>
-                    </ButtonStrip>
-                  </Modal.Actions>                
-                </Modal>
-            });
-        }
-      }
+    async componentWillMount() {
+        await getPrograms().then((response) => {
+            if (typeof response !== 'undefined') {
+                this.setState({
+                    dataElements: response.data.programs[0].programStages[0].programStageDataElements
+                })
+            }
+        })
+        await getAttributes().then((response) => {
+            if (typeof response !== 'undefined') {
+                this.setState({
+                    attributes: response.data.trackedEntityAttributes
+                })
+            }
+        })
+    }
 
 
     render() {
+        let filePreview
+        if (this.props.importFile!==undefined) {
+            filePreview = <CsvMappingColumns 
+                            csvData={this.props.importFile.data[0]} 
+                            settingType={this.props.importFileType} 
+                            orgUnitId={this.props.orgUnitId} 
+                            attributes={this.state.attributes}
+                            dataElements={this.state.dataElements}/>           
+        }
         return (
             <div>
-                <h1>Hei</h1>
-                <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.props.importFile==='undefined'}>Import</Button>
+                {filePreview}
             </div>
         );
     }
+
+
 }
 
 

@@ -5,6 +5,7 @@ import { App as D2UIApp, mui3theme as dhis2theme } from '@dhis2/d2-ui-core';
 import HeaderBar from './components/dhis2/HeaderBar';
 import Sidebar from './components/dhis2/Sidebar';
 import ImportPreview from './components/dhis2/ImportPreview';
+import Main from './components/dhis2/Main';
 
 
 class App extends Component {
@@ -19,16 +20,12 @@ class App extends Component {
         };
     }
 
+
     getChildContext() {
         return { d2: this.state.d2 };
     }
 
 
-    handleFileUpload = (file) => {
-		this.setState({importFile: file})
-    }
-
-    
     setOrgUnit = (orgUnitId, orgUnitName) => {
         this.setState({orgUnitId: orgUnitId, orgUnitName: orgUnitName})
     }
@@ -44,8 +41,7 @@ class App extends Component {
             <D2UIApp>
                 <MuiThemeProvider theme={createMuiTheme(dhis2theme)}>
                     <HeaderBar appName='Whonet Importer'/> 
-                    <Sidebar handleFileUpload={this.handleFileUpload} d2={this.state.d2} setOrgUnit={this.setOrgUnit}/>
-                    <ImportPreview importFile={this.importFile} orgUnitId={this.state.orgUnitId} orgUnitName={this.state.orgUnitName} />
+                    <Main d2={this.state.d2} orgUnitId={this.state.orgUnitId} orgUnitName={this.state.orgUnitName} setOrgUnit={this.setOrgUnit}/>
                 </MuiThemeProvider>
             </D2UIApp>
         );
