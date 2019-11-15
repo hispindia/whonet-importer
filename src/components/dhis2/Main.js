@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Sidebar from './Sidebar';
 import ImportPreview from './ImportPreview';
-import { Button, Modal, ButtonStrip } from '@dhis2/ui-core';
+import { Button, Modal, ButtonStrip, AlertBar, AlertStack } from '@dhis2/ui-core';
 import Papa from 'papaparse';
 import {
     getPrograms,
@@ -28,7 +28,7 @@ class Main extends Component {
             importFile: undefined,
             orgUnitId: '',
             orgUnitName: '',
-            feedBackToUser: '',
+            feedbackToUser: '',
             importFileType: 'whonet',
             csvfile: undefined,
         };
@@ -47,15 +47,16 @@ class Main extends Component {
     
     setOrgUnit = (orgUnitId, orgUnitName) => {
         this.setState({orgUnitId: orgUnitId, orgUnitName: orgUnitName})
+        this.props.setOrgUnit(orgUnitId, orgUnitName)
     }
 
 
     giveUserFeedback = (feedback) => {
         this.setState({
-          feedBackToUser:
+          feedbackToUser:
             <Modal small open>
               <Modal.Content> {feedback} </Modal.Content>
-              <Modal.Actions><Button onClick={() => this.setState({ feedBackToUser: '' })}>Close</Button></Modal.Actions>
+              <Modal.Actions><Button onClick={() => this.setState({ feedbackToUser: '' })}>Close</Button></Modal.Actions>
             </Modal>
         });
     }
@@ -63,7 +64,6 @@ class Main extends Component {
 
     setImportFileType = (fileType) => {
         this.setState({importFileType: fileType})
-        console.log("Settting importFileType: " + fileType)
     }
 
 
@@ -75,30 +75,32 @@ class Main extends Component {
         }  
         else {
             this.setState({
-              feedBackToUser:
+              feedbackToUser:
                 <Modal small open>
                   <Modal.Content>Are you sure you want to upload <i>{this.state.importFile.name}</i> ?</Modal.Content>
                   <Modal.Actions>
                     <ButtonStrip>
-                      <Button secondary onClick={() => this.setState({ feedBackToUser: '' })}>Cancel</Button>
+                      <Button secondary onClick={() => this.setState({ feedbackToUser: '' })}>Cancel</Button>
                       <Button primary onClick={this.handleFileUpload}>Yes</Button>
                     </ButtonStrip>
                   </Modal.Actions>                
                 </Modal>
             });
         }
-      }
+    }
 
         
     handleFileUpload = () => {
-        this.setState({ feedBackToUser: ''});
+        this.setState({ feedbackToUser: ''});
         checkOrgUnitInProgram(this.props.orgUnitId).then(async result => {
             if (typeof result !== 'undefined' && result.length > 0) {
                 this.setState({
                     loading: true
                 })
+                console.log("this.state.orgUnitId: " + this.state.orgUnitId)
                 await uploadCsvFile(this.state.importFile, this.state.orgUnitId, this.state.importFileType).then((response) => {
-                    console.log("reponse: " + response)
+                    console.log("Response from uploadCsvFile: " + JSON.stringify(response))
+                    this.fileUploadFeedback(response)
                 });
             } 
             else {
@@ -111,19 +113,42 @@ class Main extends Component {
     handleFilePick = (file) => {
         this.setState({importFile: file})
     }
+
+
+    fileUploadFeedback = (response) => {
+        if (response.error===false) {
+            this.setState({feedbackToUser: 
+            <AlertStack>
+                <AlertBar duration={8000} icon success className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+                    {response.success}
+                </AlertBar>
+            </AlertStack>
+          })
+        }
+        else {
+            this.setState({
+                feedbackToUser:
+                <AlertStack>
+                    <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+                        {response.error}
+                    </AlertBar>
+                </AlertStack>
+          });
+        } 
+    }
     
 
     render() {
         return (
             <div className='pageContainer'>
-                <aside className='sideBar'>
-                <Sidebar handleFilePick={this.handleFilePick} setImportFileType={this.setImportFileType} d2={this.props.d2} setOrgUnit={this.props.setOrgUnit} setImportFileType={this.setImportFileType}/>
-                <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.importFile===undefined}>Import</Button>
-                </aside>
+                <div className='sideBar'>
+                    <Sidebar handleFilePick={this.handleFilePick} setImportFileType={this.setImportFileType} d2={this.props.d2} setOrgUnit={this.setOrgUnit} setImportFileType={this.setImportFileType}/>
+                    <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.importFile===undefined}>Import</Button>
+                </div>
                 <div className='previewBox'>
                     <ImportPreview importFile={this.state.importFile} orgUnitId={this.state.orgUnitId} importFileType={this.state.importFileType}/>
                 </div>
-                {this.state.feedBackToUser}                
+                {this.state.feedbackToUser}                                    
             </div>
         );
     }

@@ -3,11 +3,10 @@
     max-width: 100%;
     display: flex;
     flex-direction: row; 
-    /*background-color: rgb(240, 240, 240);*/
+    background-color: rgb(240, 240, 240);
 }
-
-
 .sideBar {
+    float: left; 
     display: flex;
     flex-direction: column; 
     background-color: #fff;
@@ -16,9 +15,7 @@
     width: 210px;
     padding: 8px;
 }
-.previewBox {
-    
-}
+
 
  .helpModalContainer {
      margin-top: 2%;
@@ -40,7 +37,7 @@
     bottom: 50%;
 }
 .treeBox {
-    max-height: 200px; 
+    max-height: 300px; 
     overflow: scroll; 
     flex-shrink: 1; 
 }
