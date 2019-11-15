@@ -57,10 +57,10 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
       });
     }  
 };
-export const getMe = async () => {
-  return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
-};
-
+/**
+* Create trackedEntityInstances
+* @returns {Object} create response
+*/
 export const createTrackedEntity = async (trackedEntityJson) => {
 
     return axios(config.baseUrl+'api/trackedEntityInstances?strategy=CREATE_AND_UPDATE', {
@@ -75,6 +75,49 @@ export const createTrackedEntity = async (trackedEntityJson) => {
        return error.response.data.response;
      }); 
 
+};
+
+/**
+* Get event id by TEI id to update duplicate record
+* @param {String} programId - program id
+* @param {String} orgUnitId - org unit id
+* @param {String} teiId - trackedEntityInstance id
+* @returns {Object} event id
+*/
+
+export const getEventId = (programId, orgUnitId, teiId) => {
+
+  return get('api/events.json?program='+programId+'&ou='+orgUnitId+'&fields=event&trackedEntityInstance='+teiId)
+      .then(function (response) { 
+      return response.data.events[0].event;
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+};
+/**
+* Update event
+* @returns {Object} update response
+*/
+export const updateEvent = async (eventPayload) => {
+
+    return axios(config.baseUrl+'api/events/', {
+        method: 'POST',
+        headers: config.fetchOptions.headers,
+        data: eventPayload,
+        withCredentials: true,        
+    }).then(response => {
+       return response;
+     })
+     .catch(error => {
+       return error.response.data.response;
+     }); 
+
+};
+
+export const getMe = async () => {
+  return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
 };
 
 /**

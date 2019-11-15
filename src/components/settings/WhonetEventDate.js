@@ -122,12 +122,19 @@ class WhonetEventDate extends React.Component {
       console.log("error.response.data.httpStatusCode: ", error.response.data.httpStatusCode);
     });
 
-    updatedEventDate.push(updateArray[0].value);
+    // Datastore empty array update
+    if (updateArray[0].value === '') {
+
+    } else {
+      updatedEventDate.push(updateArray[0].value);
+    }
+    
     // If there is no key exist then create first then add settings data
     if (typeof dataStoreNameSpace === 'undefined') {
       await createDateStoreNameSpace('api/dataStore/whonet/requiredFields', JSON.stringify("eventDate")).then(info=>{
           console.log("Info: ", info.data);
       });
+
       await metaDataUpdate('api/dataStore/whonet/requiredFields', JSON.stringify({"eventDate": updatedEventDate, "reqElements":[], "reqAttributes": [] }) )
       .then((response) => {
         if(response.data.httpStatus === "OK" ){
@@ -144,6 +151,7 @@ class WhonetEventDate extends React.Component {
     } else {
       dataStoreNameSpace.eventDate = updatedEventDate; // update existing elements
       let finalPayload = dataStoreNameSpace;
+      console.log({finalPayload});
       await metaDataUpdate('api/dataStore/whonet/requiredFields', JSON.stringify(finalPayload) )
       .then((response) => {
         if(response.data.httpStatus === "OK" ){

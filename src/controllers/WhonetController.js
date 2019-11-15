@@ -25,6 +25,8 @@ import {
   getOptionSetDetails,
   getMultipleElements,
   getMultipleAttributes,
+  getEventId,
+  updateEvent,
 } from '../components/api/API';
 import { DropdownButton } from '@dhis2/ui-core/build/cjs/DropdownButton';
 
@@ -55,6 +57,8 @@ class WHONETFileReader extends React.Component {
       dryRunResult: [],
       teiResponse: [],
       teiResponseString: "",
+      eventResponse: [],
+      eventResponseString: "",
       mappingCsvData: [],
       duplicateStatus: false,
       trackedEntityInstance: "",
@@ -194,8 +198,6 @@ class WHONETFileReader extends React.Component {
           requiredColumnsDeValue: response.data.dataElements
         });      
       });
-      // getMultipleElements = await
-      //
 
       //Missing attributes alert
       await getMultipleAttributes(this.state.requiredColumnsAtt).then((response) => {
@@ -376,6 +378,7 @@ class WHONETFileReader extends React.Component {
     let attributeId = "";
     let elementValue = "";
     let teiPayloadString = {};
+    let eventPayloadString = {};
     let orgUnitId = this.props.orgUnitId;
     let trackedEntityJson, eventDate;
 
@@ -623,36 +626,42 @@ class WHONETFileReader extends React.Component {
         * @{Object.keys(teiPayload)} checkes the json payload length
         * @{teiPayloadString} returns json payload with non-duplicate data to create new entity
         */
-
-        if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length || !this.state.duplicateStatus) {
-
-          teiPayloadString[currentIndex] = {
-            "trackedEntityType": config.trackedEntityType,
-            "orgUnit": orgUnitId,
-            "attributes": Object.values(teiPayload),
-            "enrollments": [{
+        if (!this.state.duplicateStatus) {
+          if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length) {
+            teiPayloadString[currentIndex] = {
+              "trackedEntityType": config.trackedEntityType,
               "orgUnit": orgUnitId,
-              "program": config.programId,
-              "enrollmentDate": eventDate,
-              "incidentDate": eventDate,
-              "events": [{
-                "program": config.programId,
+              "attributes": Object.values(teiPayload),
+              "enrollments": [{
                 "orgUnit": orgUnitId,
-                "eventDate": eventDate,
-                "status": "ACTIVE",
-                "programStage": config.programStage,
-                "dataValues": Object.values(eventsPayloadUpdated)
+                "program": config.programId,
+                "enrollmentDate": eventDate,
+                "incidentDate": eventDate,
+                "events": [{
+                  "program": config.programId,
+                  "orgUnit": orgUnitId,
+                  "eventDate": eventDate,
+                  "status": "ACTIVE",
+                  "programStage": config.programStage,
+                  "dataValues": Object.values(eventsPayloadUpdated)
+                }]
               }]
-            }]
-          };
+            };
+          }
         }
+        
         /**
         * Create json payload for duplicate records
         * @param {duplicateStatus} status - checkes the existing enrollment 
         * @param {teiPayloadString} returns json payload with duplicate data to update exinsting enrollment
         */
         if (this.state.duplicateStatus) {
-          teiPayloadString[currentIndex] = {
+
+          // Get event id to update duplicate
+
+          const eventId = await getEventId(config.programId, orgUnitId, this.state.trackedEntityInstance);
+
+          /*teiPayloadString[currentIndex] = {
             "trackedEntityInstance": this.state.trackedEntityInstance,
             "trackedEntityType": config.trackedEntityType,
             "orgUnit": orgUnitId,
@@ -671,6 +680,17 @@ class WHONETFileReader extends React.Component {
                 "dataValues": Object.values(eventsPayloadUpdated)
               }]
             }]
+          };*/
+          eventPayloadString[currentIndex] = {
+            
+              "program": config.programId,
+              "orgUnit": orgUnitId,
+              "event": eventId,
+              "eventDate": eventDate,
+              "status": "ACTIVE",
+              "programStage": config.programStage,
+              "dataValues": Object.values(eventsPayloadUpdated)
+            
           };
         }
 
@@ -679,26 +699,33 @@ class WHONETFileReader extends React.Component {
     }
 
     /**
-    * @{teiPayloadString}-contains the new and duplicate payload
+    * Combine the trackedEntityInstances key
     * @{trackedEntityJson} - returns the final json payload 
     */
     if ((typeof teiPayloadString !== 'undefined' || teiPayloadString !== null)) {
       
       trackedEntityJson = '{"trackedEntityInstances": ' + JSON.stringify(Object.entries(teiPayloadString).map(payload => payload[1])) + '}';
-      console.log("Final teiPayloadString payload: ", trackedEntityJson);
+      // console.log("Final teiPayloadString payload: ", trackedEntityJson);
     
     }
 
     if (typeof teiPayloadString !== 'undefined') {
       try {
-        let responseData = await createTrackedEntity(trackedEntityJson);
+        let finalEventUpdatePayload = '{"events": ' +JSON.stringify(Object.entries(eventPayloadString).map(payload => payload[1]))+ '}';
 
-        if (typeof responseData.data !== 'undefined') {
+        let teiResponseData = await createTrackedEntity(trackedEntityJson);
+        let eventResponseData = await updateEvent(finalEventUpdatePayload);
+
+        if (typeof teiResponseData.data !== 'undefined') {
+
           this.setState({
-            teiResponse: responseData.data,
-            teiResponseString: JSON.stringify(responseData.data)
+            teiResponse: teiResponseData.data,
+            eventResponse: eventResponseData.data,
+            teiResponseString: JSON.stringify(teiResponseData.data),
+            eventResponseString: JSON.stringify(eventResponseData.data),
           });
-          if (responseData.data.httpStatus === "OK") {
+
+          if (teiResponseData.data.httpStatus === "OK") {
             this.giveUserFeedback('Your data was successfully uploaded')
             this.setState({
                 loading: false
@@ -712,8 +739,8 @@ class WHONETFileReader extends React.Component {
         } else { // Axios return 409 or ERROR
           this.giveUserFeedback('Sorry! Unable to import whonet file. Please check the below log.');
           this.setState({
-            teiResponse: responseData,
-            teiResponseString: JSON.stringify(responseData)
+            teiResponse: teiResponseData,
+            teiResponseString: JSON.stringify(teiResponseData)
           });
           this.setState({
             loading: false
@@ -844,8 +871,8 @@ class WHONETFileReader extends React.Component {
     * @returns-logger
     */
     if (Object.keys(this.state.teiResponse).length > 0 || Object.entries(this.state.teiResponse).length > 0) {
-      teiResponse = <ImportResults teiResponse={this.state.teiResponse} />
-      logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} />
+      teiResponse = <ImportResults teiResponse={this.state.teiResponse} eventResponse={this.state.eventResponse} />
+      logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} eventResponseString={this.state.eventResponseString}/>
     }
 
     // Program assigned status
