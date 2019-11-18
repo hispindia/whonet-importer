@@ -43,8 +43,11 @@ class ImportPreview extends Component {
                             attributes={this.state.attributes}
                             dataElements={this.state.dataElements}/>           
         }
+        else {
+            filePreview = <p className='emptyFilePreviewText'>Please select a file</p>
+        }
         return (
-            <div>
+            <div className="importPreview">
                 {filePreview}
             </div>
         );

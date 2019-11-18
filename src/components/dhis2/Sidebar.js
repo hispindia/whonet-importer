@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import WhonetController from '../../controllers/WhonetController';
 import 'regenerator-runtime/runtime';
-import { Card, Modal, Button, Radio } from '@dhis2/ui-core';
+import { Card, Modal, Button, Radio, Divider } from '@dhis2/ui-core';
 import '../../style/dhis2UiStyle.css';
 import { OrgUnitTree } from '@hisp-amr/org-unit-tree';
 import HelpModal from '../../components/settings/HelpModal';
@@ -48,7 +48,7 @@ export default class Sidebar extends React.Component {
 		this.setState({
 		  modal: '',
 		})
-	  }
+	}
 
 	
 	handleHelpModal = () => {
@@ -70,7 +70,7 @@ export default class Sidebar extends React.Component {
 				<Modal.Content>Org. unit tree would not load. </Modal.Content>
 				<Modal.Actions><Button onClick={() => this.setState({ modal: '' })}>Close</Button></Modal.Actions>
 			  </Modal>
-		  });
+		});
 	}
 
 
@@ -82,16 +82,17 @@ export default class Sidebar extends React.Component {
 
 	render () {
 		return (
-      		<div>
+      		<div className='sideBar'>
 				{this.state.modal}
-				<div>
-					<div className="treeBox">
-						<p>Organization Unit</p>
-						<OrgUnitTree onSelect={this.handleOrgUnitSelect} onError={this.handleTreeError} className="orgUnitTreeSpace"/>
-					</div>
+				<p className="text">Organization Unit</p>
+				<div className="treeBox">
+					<OrgUnitTree onSelect={this.handleOrgUnitSelect} onError={this.handleTreeError} className="orgUnitTreeSpace"/>
+				</div>
+				<Divider/>
+				<div className="mappingBox">
 					<p>Mapping</p>
 					<div className='mappingRadioButtons'>
-					<Radio 
+						<Radio 
 						className='leftRadioButton'
 						label="Whonet" 
 						//onChange={() => this.setState({importFileType: 'whonet'})} 
@@ -99,30 +100,27 @@ export default class Sidebar extends React.Component {
 						value="whonet" 
 						checked={this.state.importFileType==='whonet'}
 						/>
-					<Radio
+						<Radio
 						label="Lab"
 						//onChange={() => this.setState({importFileType: 'lab'})} 
 						onChange={() => this.handleImportFileType('lab')}						
 						value="lab"
 						checked={this.state.importFileType==='lab'}
-					/> 
+						/>
 					</div>
-					<Button className='sidebarButton' small onClick={this.handleMappingSettings} >Change mapping</Button>					
-					<div className='fileBox'>
-						
-					</div>
+					<Button small onClick={this.handleMappingSettings} >Change mapping</Button> 						
+				</div>
+				<Divider/>					
+				<div className='fileBox'>
+					<p>File</p>
 					<FilePicker 
 						importFileType={this.state.importFileType} 
 						handleFilePick = {this.props.handleFilePick}
 					/>
-					<Button className='sidebarButton' small onClick={this.handleHelpModal} >Help</Button>					
 				</div>
-				{/*<WhonetController 
-				  	importFileType={this.state.importFileType} 
-				  	d2={this.props.d2} 
-				  	orgUnitId={this.state.userOrgUnitId} 
-				  	orgUnit={this.state.userOrgUnitName}
-				/>*/}
+				<Divider/>
+				<Button small primary className='importButton' onClick={this.props.fileUploadPreAlert} disabled={this.props.disabled}>Import</Button>
+				<Button small secondary className='helpButton' onClick={this.handleHelpModal} >Help</Button>						
       		</div>
 		)
 	}

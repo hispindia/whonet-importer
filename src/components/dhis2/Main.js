@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Sidebar from './Sidebar';
 import ImportPreview from './ImportPreview';
+import ImportResults from './../import-results/ImportResults';
 import { Button, Modal, ButtonStrip, AlertBar, AlertStack } from '@dhis2/ui-core';
 import Papa from 'papaparse';
 import {
@@ -141,13 +142,10 @@ class Main extends Component {
     render() {
         return (
             <div className='pageContainer'>
-                <div className='sideBar'>
-                    <Sidebar handleFilePick={this.handleFilePick} setImportFileType={this.setImportFileType} d2={this.props.d2} setOrgUnit={this.setOrgUnit} setImportFileType={this.setImportFileType}/>
-                    <Button type='button' onClick={this.fileUploadPreAlert} primary disabled={this.state.importFile===undefined}>Import</Button>
-                </div>
-                <div className='previewBox'>
+              
+                    <Sidebar fileUploadPreAlert={this.fileUploadPreAlert} disabled={this.state.importFile===undefined} handleFilePick={this.handleFilePick} setImportFileType={this.setImportFileType} d2={this.props.d2} setOrgUnit={this.setOrgUnit} setImportFileType={this.setImportFileType}/>
                     <ImportPreview importFile={this.state.importFile} orgUnitId={this.state.orgUnitId} importFileType={this.state.importFileType}/>
-                </div>
+                
                 {this.state.feedbackToUser}                                    
             </div>
         );
