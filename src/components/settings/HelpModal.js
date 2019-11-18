@@ -7,7 +7,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../ui/Styles';
-import { Card, Modal, Button } from '@dhis2/ui-core';
+import { Modal, Button } from '@dhis2/ui-core';
 
 class HelpModal extends React.Component {
   constructor(props) {
@@ -20,7 +20,7 @@ class HelpModal extends React.Component {
   render() {
     return (
       <div>
-        <Modal open={this.state.open} large>
+        <Modal medium open>
           <Modal.Content>
               <h3 style={styleProps.styles.cardHeaderModal}> TRACKER EVENT - WHONET DATA IMPORT HELP </h3>
               <p style={styleProps.styles.modalInnerScroll}>

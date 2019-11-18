@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { App as D2UIApp, mui3theme as dhis2theme } from '@dhis2/d2-ui-core';
 import HeaderBar from './components/dhis2/HeaderBar';
-import OrgUnitTree from './components/dhis2/OrgUnitTreeComponent';
+import Sidebar from './components/dhis2/Sidebar';
 
 class App extends Component {
     constructor(props) {
@@ -28,7 +28,7 @@ class App extends Component {
             <D2UIApp>
                 <MuiThemeProvider theme={createMuiTheme(dhis2theme)}>
                     <HeaderBar appName='Whonet Importer'/> 
-                    <OrgUnitTree d2={this.state.d2} />
+                    <Sidebar d2={this.state.d2} />
                 </MuiThemeProvider>
             </D2UIApp>
         );

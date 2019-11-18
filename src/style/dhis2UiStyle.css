@@ -1,3 +1,8 @@
+.programNotAssign{
+    color: red;
+    font-size: 18px;
+    font-weight: bold;
+}
 .pageContainer {
     width: 100%;
     max-width: 100%;
@@ -5,11 +10,14 @@
     flex-direction: row; 
     /*background-color: rgb(240, 240, 240);*/
 }
-.orgUnitTreeCard {
-    padding: 1%;
-    width: auto !important;
-    max-width: 40%;
-    overflow: auto; 
+.sideBar {
+    display: flex;
+    flex-direction: column; 
+    background-color: #fff;
+    border-right: 1px solid rgba(0, 0, 0, 0.12);
+    max-height: calc(100vh - 48px);
+    width: 210px;
+    padding: 8px;
 }
 .whoNetController {
     flex-grow: 1;
@@ -42,25 +50,33 @@
  .elementsTable {
     width: auto !important;
  }
- .alertBar {
-     z-index: 2; 
-     position: absolute; 
- }
  .editDataElementLink {
-     text-decoration: none;
+     text-decoration: underline;
      color: black; 
  }
  .importPreview {
      padding: 1%; 
- }
- .alertBar {
-    bottom: 0;
-    position: 'fixed';
-    width: '100%';
  }
 .circularLoader {
     position: absolute !important; 
     z-index: 2;
     left: 50%;
     bottom: 50%;
+}
+.treeBox {
+    background-color: pink; 
+    max-height: 200px; 
+    overflow: scroll; 
+    flex-shrink: 1; 
+}
+.mappingRadioButtons {
+    display: flex; 
+    flex-direction: row; 
+    margin-bottom: 20px; 
+}
+.leftRadioButton {
+    margin-right: 12px; 
+}
+.sideBarButton {
+    width: 50px; 
 }

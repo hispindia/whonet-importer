@@ -6,7 +6,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../ui/Styles';
 import * as config  from '../../config/Config';
-import { Card, AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
+import { AlertBar, CircularLoader, Modal, ButtonStrip, Button } from '@dhis2/ui-core';
 import { 
     metaDataUpdate,
     getAttributeDetails,
@@ -156,53 +156,35 @@ class AttributesTable extends React.Component {
   
 
   updateMapping(updateArray) {
+
     this.setState({
       loading: true, feedbackToUser: '',
     });
     for (let i = 0; i < updateArray.length; i++) { 
-      let j=0;
+
       if(updateArray[i].value !== 'true' ) {
         getAttributeDetails(updateArray[i].id).then((response) => {
+
           let customAttributeString = response.data;
-          let jsonPayload = "";
-          if(typeof customAttributeString.optionSet !=='undefined' ){
-            jsonPayload = JSON.stringify({
-              "name": customAttributeString.name,
-              "shortName": customAttributeString.shortName,
-              "aggregationType": customAttributeString.aggregationType,
-              "domainType": customAttributeString.domainType,
-              "valueType": customAttributeString.valueType,
-              "code": updateArray[i].value,
-              "optionSet": {
-                    "id": customAttributeString.optionSet.id
-                }
-            });
-          } 
-          else {
-            jsonPayload = JSON.stringify({
-              "name": customAttributeString.name,
-              "shortName": customAttributeString.shortName,
-              "aggregationType": customAttributeString.aggregationType,
-              "domainType": customAttributeString.domainType,
-              "valueType": customAttributeString.valueType,
-              "code": updateArray[i].value
-            });
-          }  
+          let jsonPayload = JSON.stringify({
+            ...customAttributeString,
+           "code" : updateArray[i].value,
+          });
+            
           metaDataUpdate('api/trackedEntityAttributes/'+updateArray[i].id, jsonPayload)
             .then((response) => {
-              console.log("Console results: ", response.data);
+              if (updateArray[i].value !== '') {
+                  console.info(updateArray[i].value, "has updated" );
+              } 
           });
-          if(i === j ){
-            this.setState({
-              loading: false,
-            });
-            this.giveFeedbackToUser('success')
-            return
-          }  
-        });
-        j++; 
-      }        
+        });          
+      }           
     }
+    this.setState({
+      loading: false,
+    });
+    this.giveFeedbackToUser('success')
+    return 
   }
 
 
