@@ -81,7 +81,7 @@ class WHONETFileReader extends React.Component {
     this.uploadCSVFile = this.uploadCSVFile.bind(this);
 
   }
-  async componentWillMount() {
+  async componentDidMount() {
     /**
      * @param {currentUser} input
      * @returns Current user roles and organization unit 
@@ -341,7 +341,7 @@ class WHONETFileReader extends React.Component {
   
   generateCsvMappingTable = (input) => {
     let csvData = input.data; 
-    
+
     this.requiredImportFileHeader(csvData);
 
     this.setState({
