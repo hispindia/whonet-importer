@@ -318,7 +318,7 @@ export const amrIdSqlView = async (orgUnitId, orgUnitCode) => {
 * @returns {string} org unit detail
 */
 export const getDataStoreNameSpace = async (key) => {
-  return await get('api/dataStore/whonet/'+key);   
+  return await get('api/dataStore/whonet/'+key);  
 };
 
 /**
