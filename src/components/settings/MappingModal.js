@@ -4,11 +4,12 @@ import Attributes from './multiple-lab/Attributes';
 import Options from './multiple-lab/Options';
 import DataElementsTable from './DataElementsTable';
 import AttributesTable from './AttributesTable';
+import EventDate from './WhonetEventDate';
+import LabEventDate from './multiple-lab/LabEventDate';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import Close from '@material-ui/icons/Close';
 import * as styleProps  from '../ui/Styles';
-import { Card, Modal, Button, ButtonStrip, TabBar, Tab  } from '@dhis2/ui-core';
+import { Modal, Button, ButtonStrip, TabBar, Tab  } from '@dhis2/ui-core';
 
 
 class MappingModal extends React.Component {
@@ -24,7 +25,7 @@ class MappingModal extends React.Component {
   
 
   componentDidMount() {
-    if (this.props.settingType === 'multiLab') {
+    if (this.props.settingType === 'lab') {
       this.setState({
         title: 'Change mapping settings for org. unit: ' + this.props.orgUnitName,
         selectedTab: 'elements'})
@@ -39,12 +40,13 @@ class MappingModal extends React.Component {
 
   render() {
     let tabBar;
-    if (this.props.settingType === 'multiLab') {
+    if (this.props.settingType === 'lab') {
       tabBar = 
       <TabBar>
         <Tab selected={this.state.selectedTab==='elements'} onClick={()=>this.setState({selectedTab: 'elements'})} > Elements </Tab>
         <Tab selected={this.state.selectedTab==='attributes'} onClick={()=>this.setState({selectedTab: 'attributes'})} > Attributes </Tab>
         <Tab selected={this.state.selectedTab==='options'} onClick={()=>this.setState({selectedTab: 'options'})} > Options </Tab>
+        <Tab selected={this.state.selectedTab==='labEventDate'} onClick={()=>this.setState({selectedTab: 'labEventDate'})} > Event Date </Tab>
     </TabBar>
     }
     else {
@@ -52,6 +54,7 @@ class MappingModal extends React.Component {
       <TabBar>
         <Tab selected={this.state.selectedTab==='dataElementsTable'} onClick={()=>this.setState({selectedTab: 'dataElementsTable'})} > Elements </Tab>
         <Tab selected={this.state.selectedTab==='attributesTable'} onClick={()=>this.setState({selectedTab: 'attributesTable'})} > Attributes </Tab>
+        <Tab selected={this.state.selectedTab==='whonetEventDate'} onClick={()=>this.setState({selectedTab: 'whonetEventDate'})} > Event Date </Tab>
     </TabBar>
     }
     let mappingTable;
@@ -70,6 +73,12 @@ class MappingModal extends React.Component {
       break; 
       case 'attributesTable':
         mappingTable = <AttributesTable ref={this.state.child} />;
+      break; 
+      case 'whonetEventDate':
+        mappingTable = <EventDate ref={this.state.child} />;
+      break; 
+      case 'labEventDate':
+        mappingTable = <LabEventDate ref={this.state.child} orgUnitId={this.props.orgUnitId} />;  
     }
     
   

@@ -7,7 +7,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../ui/Styles';
-import { Card, Modal, Button } from '@dhis2/ui-core';
+import { Modal, Button } from '@dhis2/ui-core';
 
 class HelpModal extends React.Component {
   constructor(props) {

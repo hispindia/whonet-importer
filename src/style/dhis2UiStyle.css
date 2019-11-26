@@ -5,6 +5,11 @@ root {
 body { 
     min-height:100%;
 }
+.programNotAssign{
+    color: red;
+    font-size: 18px;
+    font-weight: bold;
+}
 .pageContainer {
     width: 100%;
     display: flex;

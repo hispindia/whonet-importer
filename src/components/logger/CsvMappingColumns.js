@@ -1,6 +1,4 @@
 import React from 'react';
-//import Card from 'material-ui/Card/Card';
-import CardText from 'material-ui/Card/CardText';
 import * as styleProps  from '../ui/Styles';
 import * as config  from '../../config/Config';
 import Table from '@material-ui/core/Table';
@@ -8,7 +6,6 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import { Tabs, Tab } from '@dhis2/d2-ui-core';
 import { Card } from '@dhis2/ui-core';
 import { 
     getDataStoreNameSpace,
@@ -22,11 +19,11 @@ export default class CsvMappingColumns extends React.Component {
       dsNamespaceOptions: [],
       open: props.isModalOpen,
       dsNameSpace: [],
+      disableImportButton: true,
     }  
   }      
   async componentWillMount(){
-    let dsNameSpace = []; 
-    if(this.props.settingType === 'multiLab'){
+    if(this.props.settingType === 'lab'){
       await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
         this.state.dsNameSpace.push(response.data.elements);
         this.state.dsNameSpace.push(response.data.attributes);
@@ -43,15 +40,16 @@ export default class CsvMappingColumns extends React.Component {
     const classes = this.props;
     let mapCode, dataValues, loggerTitle, matchedColumns;
     let whonetFileData = Object.entries(this.props.csvData);    
-    const {dsNamespaceElements, dsNameSpace} = this.state;
+    const {dsNameSpace} = this.state;   
 
-    if(this.props.settingType === 'multiLab'){
+    if(this.props.settingType === 'lab'){
       
       loggerTitle = "Lab file: The following mappings were found in the selected file";
       dataValues = whonetFileData.map( (value, key) =>{
 
         let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
         let csvColumnName  = splittedValue[0];
+
         // console.log("Lab: ", csvColumnName);
         matchedColumns = dsNameSpace.map( (data, index ) =>{
           return data.map( (info, i) => {
@@ -59,6 +57,7 @@ export default class CsvMappingColumns extends React.Component {
               return info.mapCode;                
           } )
         }) 
+        // console.log({matchedColumns});
         return (
           <TableRow key={key}>
             <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
@@ -71,7 +70,7 @@ export default class CsvMappingColumns extends React.Component {
               <p style={styleProps.styles.colors.color2}> {matchedColumns} </p>
             </TableCell>
           </TableRow>
-        )
+        );
       }); // dataValues end 
 
     } else { 
@@ -93,20 +92,19 @@ export default class CsvMappingColumns extends React.Component {
 
           if(elFilterResult.length > 0){
             mapCode = elFilterResult[0].dataElement.code;
-            //console.log({mapCode});
           } else if(attrFilterResult.length > 0){
             mapCode = attrFilterResult[0].code;
           } else {
             mapCode = "";
           }
-
+          
         return (
             <TableRow key={key}>
               <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
                 {key+1}
               </TableCell>
               <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-                {value[0]}
+                {csvColumnName}
               </TableCell>
               <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
                 <p style={styleProps.styles.colors.color2}> {mapCode} </p>
@@ -114,8 +112,9 @@ export default class CsvMappingColumns extends React.Component {
             </TableRow>
           )
       });
-    }  
-		return (
+    }
+
+    return (
       <div>
         <Card className="importPreview">
           <h3> {loggerTitle} </h3>
@@ -140,6 +139,8 @@ export default class CsvMappingColumns extends React.Component {
           </Table>         
         </Card>
       </div>
-		);
+    );
+
+    
 	}
 }

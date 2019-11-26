@@ -21,7 +21,7 @@ class SettingTab extends React.Component {
         let selectedElement = '';
         switch (this.state.selectedTab) {
             case '':
-                if (this.props.settingType === 'multiLab') {
+                if (this.props.settingType === 'lab') {
                     selectedElement = <Elements orgUnitId={orgUnitId} orgUnitName={orgUnitName}/>;  
                     this.setState({selectedTab: 'elements'})                
                 }
@@ -46,7 +46,7 @@ class SettingTab extends React.Component {
                 selectedElement = <AttributesTable />;
         }
 
-        if (this.props.settingType === 'multiLab') {
+        if (this.props.settingType === 'lab') {
             return (
                 <div>
                     <TabBar>

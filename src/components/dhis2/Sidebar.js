@@ -37,7 +37,7 @@ export default class Sidebar extends React.Component {
 		else {
 			this.setState({modal: 
 				<MappingModal isModalOpen='true' handleModal={this.handleSettingModal} 
-				settingType='multiLab' orgUnitId={this.state.userOrgUnitId} 
+				settingType='lab' orgUnitId={this.state.userOrgUnitId} 
 				orgUnitName={this.state.userOrgUnitName} />})	
 			this.props.setImportFileType('multiLab')			
 		}

@@ -43,7 +43,7 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
       }))
       .then(function (response) {
           if(typeof response.data.trackedEntityInstances !== 'undefined'){
-              duplicateValue = response.data.trackedEntityInstances[0].attributes;     
+              duplicateValue = response.data.trackedEntityInstances[0].attributes;
               let teiId = response.data.trackedEntityInstances[0].trackedEntityInstance;
               matchResult = duplicateValue.filter(function(data){
                   return data.value === input;
@@ -57,13 +57,13 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
       });
     }  
 };
-export const getMe = async () => {
-  return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
-};
-
+/**
+* Create trackedEntityInstances
+* @returns {Object} create response
+*/
 export const createTrackedEntity = async (trackedEntityJson) => {
 
-    return axios(config.baseUrl+'api/trackedEntityInstances', {
+    return axios(config.baseUrl+'api/trackedEntityInstances?strategy=CREATE_AND_UPDATE', {
         method: 'POST',
         headers: config.fetchOptions.headers,
         data: trackedEntityJson,
@@ -75,6 +75,49 @@ export const createTrackedEntity = async (trackedEntityJson) => {
        return error.response.data.response;
      }); 
 
+};
+
+/**
+* Get event id by TEI id to update duplicate record
+* @param {String} programId - program id
+* @param {String} orgUnitId - org unit id
+* @param {String} teiId - trackedEntityInstance id
+* @returns {Object} event id
+*/
+
+export const getEventId = (programId, orgUnitId, teiId) => {
+
+  return get('api/events.json?program='+programId+'&ou='+orgUnitId+'&fields=event&trackedEntityInstance='+teiId)
+      .then(function (response) { 
+      return response.data.events[0].event;
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
+};
+/**
+* Update event
+* @returns {Object} update response
+*/
+export const updateEvent = async (eventPayload) => {
+
+    return axios(config.baseUrl+'api/events/', {
+        method: 'POST',
+        headers: config.fetchOptions.headers,
+        data: eventPayload,
+        withCredentials: true,        
+    }).then(response => {
+       return response;
+     })
+     .catch(error => {
+       return error.response.data.response;
+     }); 
+
+};
+
+export const getMe = async () => {
+  return await get('api/me.json?fields=organisationUnits[id,name,level,parent,children::isNotEmpty]');
 };
 
 /**
@@ -142,6 +185,18 @@ export const getElementDetails = async (elementId) => {
 			console.log("error: ",error);
 		});
 };
+/**
+* @retunrs multiple element detail
+*/
+export const getMultipleElements = async (elementArray) => {
+    return await get('api/dataElements.json?filter=id:in:['+elementArray+']&fields=name,code')
+      .then(function (response) {       
+      return response;
+    })
+    .catch(function (error) {
+      console.log("error: ",error);
+    });
+};
 
 /**
 * @retunrs single attribute detail
@@ -154,6 +209,19 @@ export const getAttributeDetails = async (attributeId) => {
 		.catch(function (error) {
 			console.log(error);
 		});
+};
+
+/**
+* @retunrs single attribute detail
+*/
+export const getMultipleAttributes = async (attributeArray) => {
+    return await get('api/trackedEntityAttributes.json?filter=id:in:['+attributeArray+']&fields=name,code')    
+      .then(function (response) {       
+      return response;
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
 };
 /**
 * Category Options
@@ -212,7 +280,7 @@ export const getOrgUnitDetail = async (orgUnitId) => {
 export const generateAmrId = async (orgUnitId, orgUnitCode) => {
     const newId = () =>
     orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
-    let amrId = newId();
+     let amrId = newId();
     return get(
       request('api/events.json?', {
         fields: 'event',
@@ -220,29 +288,30 @@ export const generateAmrId = async (orgUnitId, orgUnitCode) => {
         options: [`orgUnit=${orgUnitId}`],
       })
     ).then( response =>{
-      if (typeof response.data.events =='undefined' || response.data.events.length == 0) {
+      if (typeof response.data.events === 'undefined' || response.data.events.length === 0) {
         return amrId;
       } 
     });
 }
-/*export const generateAmrId = async (orgUnitId, orgUnitCode) => {
+export const amrIdSqlView = async (orgUnitId, orgUnitCode) => {
+
     const newId = () =>
-        orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
+    orgUnitCode + (Math.floor(Math.random() * 90000) + 10000)
+     let amrId = newId();
 
-    let amrId = newId()
-    while (
-        (await get(
-            request('api/events.json?', {
-                fields: 'event',
-                filters: `${config.amrIdDataElement}:eq:${amrId}`,
-                options: [`orgUnit=${orgUnitId}`],
-            })
-        )).events.length !== 0
-    )
-        amrId = newId()
+    return get('api/sqlViews/joGfuhbHQUx/data?paging=false&var=orgunit:'+orgUnitId).then( response =>{
 
-    return amrId
-}*/
+        let result = response.data.listGrid.rows.filter(function (existingId) {
+          return existingId[0] === amrId;
+        });
+
+        if (typeof result === 'undefined' || result.length === 0) {
+          return amrId; // return newly generated id
+        } else {
+          return amrId+(Math.floor(Math.random() * 900) + 100); // generate and return new id
+        }
+    });
+}
 
 /**
 * Get data store
