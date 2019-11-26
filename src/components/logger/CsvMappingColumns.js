@@ -20,58 +20,48 @@ export default class CsvMappingColumns extends React.Component {
       open: props.isModalOpen,
       dsNameSpace: [],
       disableImportButton: true,
+      dsKeyNotFound: false,
     }  
   }      
-  async componentWillMount(){
+  async componentDidMount(){
     if(this.props.settingType === 'lab'){
+
+      try{
       await getDataStoreNameSpace(this.props.orgUnitId).then((response) => {
+
         this.state.dsNameSpace.push(response.data.elements);
         this.state.dsNameSpace.push(response.data.attributes);
         this.state.dsNameSpace.push(response.data.options);
         this.setState({
+          dsKeyNotFound: false,
           dsNamespaceElements  : response.data.elements,      
           dsNamespaceAttributes: response.data.attributes,      
-          dsNamespaceOptions   :  response.data.options      
+          dsNamespaceOptions   : response.data.options,      
         }); 
-      }).catch( error => {console.log("error: ", error)});
+      })
+
+    } catch(e){
+        let res = JSON.stringify(e);
+        if (JSON.parse(res).response.status === 404) {
+          this.setState({dsKeyNotFound: true})
+        } 
+      };
     }
   }
 	render () {
     const classes = this.props;
-    let mapCode, dataValues, loggerTitle, matchedColumns;
+    let mapCode, dataValues, loggerTitle, matchedColumns, dsKeyNotFoundMessage;
     let whonetFileData = Object.entries(this.props.csvData);    
     const {dsNameSpace} = this.state;   
 
     if(this.props.settingType === 'lab'){
-      
+      if (this.state.dsKeyNotFound) {
+        dsKeyNotFoundMessage = "No mapping were found for this lab! You can add mapping from the left 'Change mapping' window.";
+      } else {
+        dsKeyNotFoundMessage = "";
+      }
       loggerTitle = "Lab file: The following mappings were found in the selected file";
-      dataValues = whonetFileData.map( (value, key) =>{
-
-        let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
-        let csvColumnName  = splittedValue[0];
-
-        // console.log("Lab: ", csvColumnName);
-        matchedColumns = dsNameSpace.map( (data, index ) =>{
-          return data.map( (info, i) => {
-            if (info.mapCode === csvColumnName) 
-              return info.mapCode;                
-          } )
-        }) 
-        // console.log({matchedColumns});
-        return (
-          <TableRow key={key}>
-            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-              {key+1}
-            </TableCell>
-            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-              {csvColumnName}
-            </TableCell>
-            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
-              <p style={styleProps.styles.colors.color2}> {matchedColumns} </p>
-            </TableCell>
-          </TableRow>
-        );
-      }); // dataValues end 
+      
 
     } else { 
       loggerTitle = "WHONET file: The following mappings were found in the selected file";  
@@ -117,6 +107,7 @@ export default class CsvMappingColumns extends React.Component {
     return (
       <div>
         <Card className="importPreview">
+          <h3 style={styleProps.styles.colors.color1}>{dsKeyNotFoundMessage} </h3>
           <h3> {loggerTitle} </h3>
           {/*<p style={styleProps.styles.colors.color1}>{"Required Fields: " + config.requiredColumns} </p>*/}
           <Table className={classes.table}>
