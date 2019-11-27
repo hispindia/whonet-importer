@@ -61,7 +61,7 @@ class WhonetEventDate extends React.Component {
 
   handleInputChange(e) {
 
-    const {id, value}  = e.target;
+    const {value}  = e.target;
     let {dsEventDate} = this.state;
     dsEventDate["eventDate"]=value;
     this.setState({dsEventDate});     
@@ -69,7 +69,6 @@ class WhonetEventDate extends React.Component {
 
 
   renderEventDate() {
-    const classes = this.props;
     const {dsEventDate} = this.state;
     let content = <input type="text" id={dsEventDate.eventDate} value={dsEventDate.eventDate || ''}
             onChange={this.handleInputChange} style={styleProps.styles.inputText}/>;

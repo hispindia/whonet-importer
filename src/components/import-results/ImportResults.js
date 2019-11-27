@@ -54,7 +54,7 @@ export default class ImportResults extends React.Component {
 		        </TableRow>            
 	          </TableBody>          
 	        </Table>
-		} else if(this.props.eventResponse.status === 'ERROR'){ 
+		} else if(typeof this.props.eventResponse === 'undefined'){ 
 			tableData = <Table>
 					<h3> Import Summary </h3>
 	          <TableBody>            
@@ -110,9 +110,9 @@ export default class ImportResults extends React.Component {
 			eventUpdateCount = this.props.eventResponse.response.updated;				
 			totalUpdated     = this.props.eventResponse.response.total;
 
-			updateCount  = parseInt(teiUpdateCount) + parseInt(eventUpdateCount);
-			totalCount   = parseInt(totalImported) + parseInt(totalUpdated);
-			totalIgnored = parseInt(teiIgnored) + parseInt(eventIgnored);
+			updateCount  = Number(teiUpdateCount) + Number(eventUpdateCount);
+			totalCount   = Number(totalImported) + Number(totalUpdated);
+			totalIgnored = Number(teiIgnored) + Number(eventIgnored);
 			
 			tableData = <Table>
 

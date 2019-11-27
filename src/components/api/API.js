@@ -31,6 +31,29 @@ export const checkOrgUnitInProgram = async (orgUnitId) => {
 * @param {String} input - hashed patient id
 * @returns {Object} duplicate values
 */
+export const getAlltrackedEntityInstances = (orgUnitId) => {
+
+    return get('api/trackedEntityInstances.json?program='+config.programId+'&ou='+orgUnitId+'&fields: trackedEntityInstance,attributes[attribute,value]&paging=false').then(function (response) {
+         return response.data.trackedEntityInstances;           
+      }).catch(function (error) {
+        if(typeof error.response !== 'undefined'){
+          console.log(error.response);
+        }
+      }); 
+};
+
+export const isDuplicateTei = (trackedEntityInstances, input) => {
+ 
+      let duplicateValue = trackedEntityInstances[0].attributes;
+      let teiId = trackedEntityInstances[0].trackedEntityInstance;
+      console.log({duplicateValue});
+      let matchResult = duplicateValue.filter(function(data){
+          return data.value === input;
+      });
+      return {"teiId": teiId, "result": matchResult.length};
+};
+
+
 export const isDuplicate = (input, orgUnitId, attributeId) => {
 
 	let duplicateValue=[];
@@ -268,7 +291,7 @@ export const metaDataUpdate = async (api, jsonPayload) => {
 * @returns {string} org unit detail
 */
 export const getOrgUnitDetail = async (orgUnitId) => {
-  return await get('api/organisationUnits/'+orgUnitId+'.json?fields=id,name,shortName,level,code');
+  return get('api/organisationUnits/'+orgUnitId+'.json?fields=id,name,shortName,level,code');
    
 };
 

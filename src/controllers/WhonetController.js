@@ -27,6 +27,8 @@ import {
   getMultipleAttributes,
   getEventId,
   updateEvent,
+  getAlltrackedEntityInstances,
+  isDuplicateTei,
 } from '../components/api/API';
 import { DropdownButton } from '@dhis2/ui-core/build/cjs/DropdownButton';
 
@@ -403,6 +405,20 @@ class WHONETFileReader extends React.Component {
     const dataStoreNamespaceAttributes = this.state.dataStoreNamespaceAttributes;
     const dataStoreNamespaceOptions    = this.state.dataStoreNamespaceOptions;
     const csvLength = csvData.length;
+
+    // AmrId generate
+    let orgUnitCode;
+    const getOrgUnitCode = await getOrgUnitDetail(orgUnitId);
+    if (typeof getOrgUnitCode.data !== 'undefined') {
+      orgUnitCode = getOrgUnitCode.data.code;
+    } else {
+      orgUnitCode = "";
+    }
+    const getAmrId = await amrIdSqlView(orgUnitId, orgUnitCode);    
+
+    // Get all existing trackedEntityInstances     
+    const alltrackedEntityInstances = await getAlltrackedEntityInstances(orgUnitId);
+    console.log({alltrackedEntityInstances})
     
     for (let i = 0; i < csvLength - 1; i++) {
 
@@ -425,10 +441,10 @@ class WHONETFileReader extends React.Component {
             if (this.props.importFileType === 'whonet') {
 
               // Elements filter from whonet code
-              elementsFilterResult = this.state.dataElements.filter((element) => {
+              elementsFilterResult = this.state.dataElements.find((element) => {
                 return element.dataElement.code === csvColumnName;
               });
-              if (elementsFilterResult.length > 0) {
+              if (elementsFilterResult && Object.keys(elementsFilterResult).length > 0) {
 
                 let matchResult = columnValue.match(/\//g);
                 if (matchResult !== null && matchResult.length === 2) {
@@ -436,7 +452,7 @@ class WHONETFileReader extends React.Component {
                 } else {
                   elementValue = columnValue.replace(/[=><_]/gi, '');
                 }
-                elementId = elementsFilterResult[0].dataElement.id;
+                elementId = elementsFilterResult.dataElement.id;
                 eventsPayload[index] = {
                   "dataElement": elementId, 
                   "value": elementValue
@@ -446,18 +462,18 @@ class WHONETFileReader extends React.Component {
                 eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
               }
               // Attributes filter from whonet code
-              attributesFilterResult = this.state.attributes.filter(function (attribute) {
+              attributesFilterResult = this.state.attributes.find(function (attribute) {
                 return attribute.code === csvColumnName;
               });
               
             } else { // Lab
 
               // Elements filter from data store
-              elementsFilterResult = dataStoreNamespaceElements.filter((element) => {
+              elementsFilterResult = dataStoreNamespaceElements.find((element) => {
                 return element.mapCode === csvColumnName;
               });
 
-              if (elementsFilterResult.length >= 1) {
+              if (elementsFilterResult && Object.keys(elementsFilterResult).length >= 1) {
 
                 let matchResult = columnValue.match(/\//g);
                 if (matchResult !== null && matchResult.length === 2) {
@@ -465,7 +481,7 @@ class WHONETFileReader extends React.Component {
                 } else {
                   elementValue = columnValue.replace(/[=><_]/gi, '');
                 }
-                elementId = elementsFilterResult[0].id;
+                elementId = elementsFilterResult.id;
 
                 // Options checking for data elements
                 await getElementDetails(elementId).then((deResponse) => {
@@ -512,14 +528,14 @@ class WHONETFileReader extends React.Component {
               }
 
               // Attributes filter from data store
-              attributesFilterResult = dataStoreNamespaceAttributes.filter(function (attribute) {
+              attributesFilterResult = dataStoreNamespaceAttributes.find(function (attribute) {
                 return attribute.mapCode === csvColumnName;
               });
             }
             // console.log({attributesFilterResult});
-            if (attributesFilterResult.length >= 1) {
+            if (attributesFilterResult && Object.keys(attributesFilterResult).length >= 1) {
               let attributeValue;
-              attributeId = attributesFilterResult[0].id;
+              attributeId = attributesFilterResult.id;
               let matchResult = columnValue.match(/\//g);
 
               if (matchResult !== null && matchResult.length === 2) {
@@ -583,6 +599,7 @@ class WHONETFileReader extends React.Component {
 
               // Duplicate Patient ID checking
               if (csvColumnName === registrationNo) {
+                // const result = await isDuplicateTei(alltrackedEntityInstances, hash(columnValue.replace(/[=><_]/gi, '')));
                 const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                 duplicate[index] = result;
                 if (typeof result !== 'undefined') {
@@ -608,14 +625,7 @@ class WHONETFileReader extends React.Component {
         * If the newly generated amrid is matched with existing one the new one will be re-genreated and return for this record
         * @eventsPayloadUpdated returns updated json payload with dynamically generated amrid
         */
-        let orgUnitCode;
-        const getOrgUnitCode = await getOrgUnitDetail(orgUnitId);
-        if (typeof getOrgUnitCode.data !== 'undefined') {
-          orgUnitCode = getOrgUnitCode.data.code;
-        } else {
-          orgUnitCode = "";
-        }
-        const getAmrId = await amrIdSqlView(orgUnitId, orgUnitCode);
+        
         let amrIdPayload = [{
           "dataElement": config.amrIdDataElement,
           "value": getAmrId
@@ -705,7 +715,7 @@ class WHONETFileReader extends React.Component {
     if ((typeof teiPayloadString !== 'undefined' || teiPayloadString !== null)) {
       
       trackedEntityJson = '{"trackedEntityInstances": ' + JSON.stringify(Object.entries(teiPayloadString).map(payload => payload[1])) + '}';
-      // console.log("Final teiPayloadString payload: ", trackedEntityJson);
+      console.log("Final teiPayloadString payload: ", trackedEntityJson);
     
     }
 
@@ -715,7 +725,9 @@ class WHONETFileReader extends React.Component {
 
         let teiResponseData = await createTrackedEntity(trackedEntityJson);
         let eventResponseData = await updateEvent(finalEventUpdatePayload);
-
+        console.log("Final teiResponseData payload: ", teiResponseData);
+        console.log("Final eventResponseData payload: ", eventResponseData);
+        
         if (typeof teiResponseData.data !== 'undefined') {
 
           this.setState({

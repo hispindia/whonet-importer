@@ -1,6 +1,6 @@
 import React from 'react';
 import * as styleProps  from '../ui/Styles';
-import * as config  from '../../config/Config';
+// import * as config  from '../../config/Config';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -51,7 +51,7 @@ export default class CsvMappingColumns extends React.Component {
 	render () {
     const classes = this.props;
     let mapCode, dataValues, loggerTitle, matchedColumns, dsKeyNotFoundMessage;
-    let whonetFileData = Object.entries(this.props.csvData);    
+    let whonetFileData  = Object.entries(this.props.csvData);    
     const {dsNameSpace} = this.state;   
 
     if(this.props.settingType === 'lab'){
@@ -61,7 +61,34 @@ export default class CsvMappingColumns extends React.Component {
         dsKeyNotFoundMessage = "";
       }
       loggerTitle = "Lab file: The following mappings were found in the selected file";
-      
+
+      dataValues = whonetFileData.map( (value, key) =>{
+
+        let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
+        let csvColumnName  = splittedValue[0];
+
+        // console.log("Lab: ", csvColumnName);
+        matchedColumns = dsNameSpace.map( (data, index ) =>{
+          return data.map( (info, i) => {
+            if (info.mapCode === csvColumnName) 
+              return info.mapCode;                
+          } )
+        }) 
+        // console.log({matchedColumns});
+        return (
+          <TableRow key={key}>
+            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+              {key+1}
+            </TableCell>
+            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+              {csvColumnName}
+            </TableCell>
+            <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
+              <p style={styleProps.styles.colors.color2}> {matchedColumns} </p>
+            </TableCell>
+          </TableRow>
+        );
+      }); // dataValues end 
 
     } else { 
       loggerTitle = "WHONET file: The following mappings were found in the selected file";  

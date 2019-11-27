@@ -6,6 +6,10 @@ import * as styleProps  from '../ui/Styles';
 export default class LoggerComponent extends React.Component {
 	render () {
         let teiResponseString ="" , eventResponseString = "";
+
+        if (typeof JSON.parse(this.props.teiResponseString).response !== 'undefined') {
+
+        }
         if (JSON.parse(this.props.teiResponseString).response.total > 0) {
           teiResponseString = <p style={styleProps.styles.paragarphWrap}>Import response summary: {this.props.teiResponseString} </p>; 
         } 
