@@ -64,7 +64,7 @@ export default class CsvMappingColumns extends React.Component {
       
 
     } else { 
-      loggerTitle = "WHONET file: The following mappings were found in the selected file";  
+      loggerTitle = "The following mappings were found in the selected file";  
       dataValues = whonetFileData.map( (value, key) =>{
         let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
         let csvColumnName  = splittedValue[0];
@@ -114,13 +114,13 @@ export default class CsvMappingColumns extends React.Component {
             <TableHead>
               <TableRow>
                 <TableCell style={styleProps.styles.tableHeader}> 
-                  <strong><h3>File column nr</h3></strong>
+                <strong><p>File column nr</p></strong>
                 </TableCell>
                 <TableCell style={styleProps.styles.tableHeader}> 
-                  <strong><h3>File column header name </h3></strong>
+                  <strong><p>File column header name </p></strong>
                 </TableCell>
                 <TableCell style={styleProps.styles.tableHeader}> 
-                  <strong><h3> DHIS2 data field name </h3></strong>
+                  <strong><p> DHIS2 data field name </p></strong>
                 </TableCell>
               </TableRow>
             </TableHead>
