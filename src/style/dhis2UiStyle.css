@@ -1,3 +1,10 @@
+/* MAIN CONTAINERS */
+root { 
+    height:100%;
+}
+body { 
+    min-height:100%;
+}
 .programNotAssign{
     color: red;
     font-size: 18px;
@@ -5,45 +12,37 @@
 }
 .pageContainer {
     width: 100%;
-    max-width: 100%;
     display: flex;
     flex-direction: row; 
-    /*background-color: rgb(240, 240, 240);*/
+    background-color: rgb(240, 240, 240);
+    min-height: calc(100vh - 48.99px);
 }
 .sideBar {
+    float: left; 
     display: flex;
     flex-direction: column; 
     background-color: #fff;
     border-right: 1px solid rgba(0, 0, 0, 0.12);
-    max-height: calc(100vh - 48px);
+    height: calc(100vh - 48.99px);
     width: 210px;
-    padding: 8px;
+    padding-left: 8px; 
+    padding-right: 8px; 
+    padding-top: 8px;
 }
-.whoNetController {
-    flex-grow: 1;
-    width: auto;
-    max-width: 92%;
+.previewBox {
+    max-width: 100%;
+    height: calc(100vh - 48.99px);
 }
-.fileUploadCard {
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    padding: 1%;    
+
+
+/* ............... */
+.importPreview {
+    width: 100%;; 
+    text-align: center;
 }
-.fileUploadCardTopContent {
-    display: flex;
-    flex-direction: row; 
-    justify-content: flex-end;
+.emptyFilePreviewText {
+    margin-top: 45vh;
 }
-.fileUploadCardBottomContent {
-    margin-top: 2%;
-    display: flex;
-    flex-direction: row; 
-    justify-content: space-between;
- }
- .resultCard {
-     margin-top: 2%;
- }
  .helpModalContainer {
      margin-top: 2%;
  }
@@ -54,20 +53,29 @@
      text-decoration: underline;
      color: black; 
  }
- .importPreview {
-     padding: 1%; 
- }
 .circularLoader {
     position: absolute !important; 
     z-index: 2;
     left: 50%;
     bottom: 50%;
 }
+
+
+/* SIDEBAR ELEMENTS */
+p {
+    margin-top: 0px; 
+    margin-bottom: 10px; 
+}
 .treeBox {
-    background-color: pink; 
-    max-height: 200px; 
+    max-height: 250px; 
     overflow: scroll; 
     flex-shrink: 1; 
+}
+.mappingBox {
+    padding-bottom: 7px;   
+}
+.fileBox {
+    padding-bottom: 7px;       
 }
 .mappingRadioButtons {
     display: flex; 
@@ -77,6 +85,14 @@
 .leftRadioButton {
     margin-right: 12px; 
 }
-.sideBarButton {
-    width: 50px; 
+.importButton {
+    max-width: 100px;         
 }
+.helpButton {
+    margin-top: 7px;
+    position: relative;
+    float: right;
+    max-width: 100px;     
+}
+
+
