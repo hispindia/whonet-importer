@@ -31,7 +31,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
         let duplicateStatus = false;
     
         
-        if (importFileType === 'multiLab') {
+        if (importFileType === 'lab') {
           // Data store check
           await getDataStoreNameSpace(orgUnitId).then((response) => {
               dataStoreNamespaceElements =  response.data.elements;

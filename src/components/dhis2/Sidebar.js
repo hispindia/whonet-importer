@@ -13,19 +13,33 @@ import FilePicker from './FilePicker';
 
 export default class Sidebar extends React.Component {
 	state = {
-      	userOrgUnitId  : [],
+    userOrgUnitId  : [],
 		userOrgUnitName: '',
 		modal: '',
 		importFileType: 'whonet',		
+		programAssignedStatus: false,
+		disabled: true,
 	}		
 	
 
 	handleOrgUnitSelect = ({id, displayName}) => {
-		this.setState({userOrgUnitId : id, userOrgUnitName: displayName})
-		console.log("Setting orgUnit: " + displayName + " and org unit id: " + id)
-		this.props.setOrgUnit(id, displayName)
+		this.setState({userOrgUnitId : id, userOrgUnitName: displayName});
+		// console.log("Setting orgUnit: " + displayName + " and org unit id: " + id)
+		this.props.setOrgUnit(id, displayName);
+		
 	}
 
+	/**
+	* @{return}-callback result from FilPicker component
+	* @{Set}-button and program assignment status as true/false
+	*/
+	orgUnitAssignmentCallback = (dataFromChild, disabled) => {
+
+		this.setState({
+      disabled: disabled,
+      programAssignedStatus: dataFromChild,
+    });
+	}
 
 	handleMappingSettings = () => {
 		if (this.state.importFileType === 'whonet') {
@@ -62,7 +76,6 @@ export default class Sidebar extends React.Component {
 		}
 	}
 
-
 	handleTreeError = () => {
 		this.setState({
 			modal:
@@ -73,7 +86,6 @@ export default class Sidebar extends React.Component {
 		});
 	}
 
-
 	handleImportFileType = (type) => {
 		this.setState({importFileType: type})
 		this.props.setImportFileType(type)
@@ -81,8 +93,14 @@ export default class Sidebar extends React.Component {
 
 
 	render () {
+
+		let programAssignedMessage;
+    if(this.state.programAssignedStatus){
+      programAssignedMessage = <p className="programNotAssign"> Sorry! Your selected org. unit was not assigned to this program.</p>
+    }    
+
 		return (
-      		<div className='sideBar'>
+      	<div className='sideBar'>
 				{this.state.modal}
 				<p className="text">Organization Unit</p>
 				<div className="treeBox">
@@ -114,12 +132,18 @@ export default class Sidebar extends React.Component {
 				<div className='fileBox'>
 					<p>File</p>
 					<FilePicker 
-						importFileType={this.state.importFileType} 
+						importFileType = {this.state.importFileType} 
 						handleFilePick = {this.props.handleFilePick}
+						giveUserFeedback = {this.props.giveUserFeedback}
+						orgUnitId= {this.state.userOrgUnitId}
+						callbackFromFilePicker={this.orgUnitAssignmentCallback}
+						dataStoreNamespaceCheckCallback = {this.props.dataStoreNamespaceCheck}
+						callbackRequiredColumnsAtt = {this.props.callbackRequiredColumnsAtt}
 					/>
 				</div>
 				<Divider/>
-				<Button small primary className='importButton' onClick={this.props.fileUploadPreAlert} disabled={this.props.disabled}>Import</Button>
+				{programAssignedMessage}
+				<Button small primary className='importButton' onClick={this.props.fileUploadPreAlert} disabled={this.state.disabled}>Import</Button>
 				<Button small secondary className='helpButton' onClick={this.handleHelpModal} >Help</Button>						
       		</div>
 		)

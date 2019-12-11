@@ -5,21 +5,12 @@ import ImportPreview from './ImportPreview';
 import ImportResults from './../import-results/ImportResults';
 import { Button, Modal, ButtonStrip, AlertBar, AlertStack } from '@dhis2/ui-core';
 import Papa from 'papaparse';
-import {
-    getPrograms,
-    getAttributes,
-    getAttributeDetails,
-    isDuplicate,
-    createTrackedEntity,
-    checkOrgUnitInProgram,
-    getOrgUnitDetail,
-    generateAmrId,
-    getDataStoreNameSpace,
-    getElementDetails,
-    getOptionDetails,
-    getOptionSetDetails,
-  } from '../api/API';
-  import {uploadCsvFile} from '../helpers/UploadCsvFile';
+import { 
+  checkOrgUnitInProgram,
+  getAttributes,
+  getPrograms,
+} from '../api/API';
+import {uploadCsvFile} from '../helpers/UploadCsvFile';
 
 
 class Main extends Component {
@@ -32,25 +23,46 @@ class Main extends Component {
             feedbackToUser: '',
             importFileType: 'whonet',
             csvfile: undefined,
+            requiredColumnsAttValue: [],
+            dataElements: [],
+            attributes: [],
+            eventDate: ""
         };
+        
     }
+    async componentDidMount() {
+      // List of all data elements
+      let self = this;
+      await getPrograms().then((response) => {
+        if (typeof response !== 'undefined') {
+          self.setState({
+            dataElements: response.data.programs[0].programStages[0].programStageDataElements
+          });
+        }
 
+      });
 
+      // List of all attributes
+      await getAttributes().then((response) => {
+        if (typeof response !== 'undefined') {
+          self.setState({
+            attributes: response.data.trackedEntityAttributes
+          });
+        }
+      });
+    }
     handleFileUpload = (file) => {
-		this.setState({importFile: file})
+		  this.setState({importFile: file})
     }
 
-
-    setImportFileType = (fileType) => {
+    /*setImportFileType = (fileType) => {
         this.setState({importFileType: fileType})
-    }
-
+    }*/
     
     setOrgUnit = (orgUnitId, orgUnitName) => {
         this.setState({orgUnitId: orgUnitId, orgUnitName: orgUnitName})
         this.props.setOrgUnit(orgUnitId, orgUnitName)
     }
-
 
     giveUserFeedback = (feedback) => {
         this.setState({
@@ -62,19 +74,17 @@ class Main extends Component {
         });
     }
 
-
     setImportFileType = (fileType) => {
-        this.setState({importFileType: fileType})
+      this.setState({importFileType: fileType})
     }
 
-
     fileUploadPreAlert = () => {
+
         if (typeof this.props.orgUnitId === 'undefined' || this.props.orgUnitId === null || this.props.orgUnitId === '') {
           this.giveUserFeedback('Please select an org. unit')
         } else if (typeof this.state.importFile === 'undefined') {
           this.giveUserFeedback('Please select a file')
-        }  
-        else {
+        } else {
             this.setState({
               feedbackToUser:
                 <Modal small open>
@@ -89,7 +99,6 @@ class Main extends Component {
             });
         }
     }
-
         
     handleFileUpload = () => {
         this.setState({ feedbackToUser: ''});
@@ -98,8 +107,8 @@ class Main extends Component {
                 this.setState({
                     loading: true
                 })
-                console.log("this.state.orgUnitId: " + this.state.orgUnitId)
-                await uploadCsvFile(this.state.importFile, this.state.orgUnitId, this.state.importFileType).then((response) => {
+
+                await uploadCsvFile(this.state.importFile, this.state.orgUnitId, this.state.importFileType, this.state.requiredColumnsAttValue, this.state.dataElements, this.state.attributes, this.state.eventDate).then((response) => {
                     console.log("Response from uploadCsvFile: " + JSON.stringify(response))
                     this.fileUploadFeedback(response)
                 });
@@ -110,11 +119,9 @@ class Main extends Component {
         });
     }
 
-
     handleFilePick = (file) => {
         this.setState({importFile: file})
     }
-
 
     fileUploadFeedback = (response) => {
         if (response.error===false) {
@@ -136,15 +143,39 @@ class Main extends Component {
                 </AlertStack>
           });
         } 
+    }    
+
+    dataStoreNamespaceCheck = (status, message) =>{
+      console.log({status, message});
     }
-    
+
+    callbackRequiredColumnsAttValue = (requiredColumnsAttValue, eventDate) =>{
+     this.setState({
+      requiredColumnsAttValue: requiredColumnsAttValue,
+      eventDate: eventDate 
+    })
+    }
 
     render() {
         return (
             <div className='pageContainer'>
               
-                    <Sidebar fileUploadPreAlert={this.fileUploadPreAlert} disabled={this.state.importFile===undefined} handleFilePick={this.handleFilePick} setImportFileType={this.setImportFileType} d2={this.props.d2} setOrgUnit={this.setOrgUnit} setImportFileType={this.setImportFileType}/>
-                    <ImportPreview importFile={this.state.importFile} orgUnitId={this.state.orgUnitId} importFileType={this.state.importFileType}/>
+                <Sidebar 
+                fileUploadPreAlert = {this.fileUploadPreAlert} 
+                disabled = {this.state.importFile===undefined} 
+                handleFilePick = {this.handleFilePick} 
+                setImportFileType = {this.setImportFileType} 
+                d2={this.props.d2} 
+                setOrgUnit={this.setOrgUnit}
+                giveUserFeedback = {this.giveUserFeedback} 
+                dataStoreNamespaceCheck = {this.dataStoreNamespaceCheck}
+                callbackRequiredColumnsAtt = {this.callbackRequiredColumnsAttValue}
+                />
+
+                <ImportPreview 
+                importFile={this.state.importFile} 
+                orgUnitId={this.state.orgUnitId} 
+                importFileType={this.state.importFileType}/>
                 
                 {this.state.feedbackToUser}                                    
             </div>
