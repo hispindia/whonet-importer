@@ -7,10 +7,14 @@ import {
     checkOrgUnitInProgram,
     getOrgUnitDetail,
     generateAmrId,
+    amrIdSqlView,
     getDataStoreNameSpace,
     getElementDetails,
     getOptionDetails,
     getOptionSetDetails,
+    getEventId,
+    updateEvent,
+
   } from '../api/API';
   import { formatDate } from './DateFormat';
   import * as config from '../../config/Config';
@@ -18,62 +22,93 @@ import {
   
   
 
-export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
-        let csvData = result.data;
-        let elementId = "";
-        let attributeId = "";
-        let elementValue = "";
-        let teiPayloadString = {};
-        let trackedEntityJson, eventDate;
-        let dataStoreNamespaceElements   = [];
-        let dataStoreNamespaceAttributes = [];
-        let dataStoreNamespaceOptions    = [];
-        let duplicateStatus = false;
-    
-        
-        if (importFileType === 'lab') {
-          // Data store check
-          await getDataStoreNameSpace(orgUnitId).then((response) => {
-              dataStoreNamespaceElements =  response.data.elements;
-              dataStoreNamespaceAttributes =  response.data.attributes;
-              dataStoreNamespaceOptions = response.data.options;
-          }).catch(error => {
-              return { success: null, error: "Could not find organisation unit"} }
-            );
+export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredColumnsAttValue, dataElements, attributes, eventDate) => {
+
+      let csvData = result.data;
+      let elementId = "";
+      let attributeId = "";
+      let elementValue = "";
+      let teiPayloadString = {};
+      let trackedEntityJson;
+      let dataStoreNamespaceElements   = [];
+      let dataStoreNamespaceAttributes = [];
+      let dataStoreNamespaceOptions    = [];
+      let duplicateStatus = false;
+      let eventPayloadString = {};
+
+      
+      if (importFileType === 'lab') {
+        // Data store check
+        await getDataStoreNameSpace(orgUnitId).then((response) => {
+          dataStoreNamespaceElements   =  response.data.elements;
+          dataStoreNamespaceAttributes =  response.data.attributes;
+          dataStoreNamespaceOptions    = response.data.options;
+        }).catch(error => {
+          return { success: null, error: "Could not find organisation unit"} }
+        );
+      }
+
+      // dataStoreNamespaceElements   = this.state.dataStoreNamespaceElements;
+      // dataStoreNamespaceAttributes = this.state.dataStoreNamespaceAttributes;
+      // dataStoreNamespaceOptions    = this.state.dataStoreNamespaceOptions;
+      const csvLength = csvData.length;
+
+      // Registration number
+      let registrationNo = "";
+      requiredColumnsAttValue.map((attribute)=>{
+        registrationNo = attribute.code
+      });
+
+      /*let dataElements = [];
+      await getPrograms().then((response) => {
+          if (typeof response !== 'undefined') {
+            dataElements = response.data.programs[0].programStages[0].programStageDataElements
+          }
+      });
+
+      let attributes = [];
+      await getAttributes().then((response) => {
+        if (typeof response !== 'undefined') {
+            attributes: response.data.trackedEntityAttributes
         }
-        let dataElements = []
-        await getPrograms().then((response) => {
-            if (typeof response !== 'undefined') {
-                dataElements = response.data.programs[0].programStages[0].programStageDataElements
-            }
-        });
+      });*/
 
-        let attributes = []
-        await getAttributes().then((response) => {
-            if (typeof response !== 'undefined') {
-                attributes: response.data.trackedEntityAttributes
-            }
-          });
+      // AmrId generate
+      let orgUnitCode;
+      const getOrgUnitCode = await getOrgUnitDetail(orgUnitId);
+      if (typeof getOrgUnitCode.data !== 'undefined') {
+        orgUnitCode = getOrgUnitCode.data.code;
+      } else {
+        orgUnitCode = "";
+      }
+      const getAmrId = await amrIdSqlView(orgUnitId, orgUnitCode); 
 
-        for (let i = 0; i < csvData.length - 1; i++) {
+      let trackedEntityInstance; 
+
+        for (let i = 0; i < csvData.length; i++) {
+
             await (async (currentCsvData, duplicateStatus, currentIndex) => {
                 let eventsPayload = {};
-                let teiPayload = {};
-                const csvObj = Object.entries(currentCsvData);
-                let len = csvObj.length;
+                let teiPayload    = {};
+                const csvObj      = Object.entries(currentCsvData);
+                let len           = csvObj.length;
 
             for (let j = 0; j < len - 1; j++) {
+
                 duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
+                
                 let elementsFilterResult, attributesFilterResult, optionsFilterResult;
                 let splittedValue  = columnName.split(","); // remove the C,2 or C,6 portion
                 let csvColumnName  = splittedValue[0];
-                // console.log({csvColumnName})
                 if (importFileType == 'whonet') {
+
                   // Elements filter from whonet code
-                  elementsFilterResult = dataElements.filter((element) => {
+                  elementsFilterResult = dataElements.find((element) => {
                     return element.dataElement.code === csvColumnName;
                   });
-                  if (elementsFilterResult.length > 0) {
+
+                  if (elementsFilterResult && Object.keys(elementsFilterResult).length > 0) {
+
     
                     let matchResult = columnValue.match(/\//g);
                     if (matchResult !== null && matchResult.length === 2) {
@@ -81,28 +116,30 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
                     } else {
                       elementValue = columnValue.replace(/[=><_]/gi, '');
                     }
-                    elementId = elementsFilterResult[0].id;
+                    elementId = elementsFilterResult.dataElement.id;
                     eventsPayload[index] = {
                       "dataElement": elementId, 
                       "value": elementValue
-                    };  
+                    }; 
+
                   }
-                  if (csvColumnName === config.dateColumn) {
+                  if (csvColumnName === eventDate) {
                     eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
                   }
                   // Attributes filter from whonet code
-                  attributesFilterResult = attributes.filter(function (attribute) {
+                  
+                  attributesFilterResult = attributes.find(function (attribute) {
                     return attribute.code === csvColumnName;
                   });
     
-                } else {
+                } else { // Lab
     
                   // Elements filter from data store
-                  elementsFilterResult = dataStoreNamespaceElements.filter((element) => {
+                  elementsFilterResult = dataStoreNamespaceElements.find((element) => {
                     return element.mapCode === csvColumnName;
                   });
     
-                  if (elementsFilterResult.length >= 1) {
+                  if (elementsFilterResult && Object.keys(elementsFilterResult).length >= 1) {
     
                     let matchResult = columnValue.match(/\//g);
                     if (matchResult !== null && matchResult.length === 2) {
@@ -110,7 +147,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
                     } else {
                       elementValue = columnValue.replace(/[=><_]/gi, '');
                     }
-                    elementId = elementsFilterResult[0].id;
+                    elementId = elementsFilterResult.id;
     
                     // Options checking for data elements
                     await getElementDetails(elementId).then((deResponse) => {
@@ -127,7 +164,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
                             let optionsDetail = osResponse.data.options;
                             for (let i = 0; i < optionsDetail.length; i++) {
     
-                              let optionName = optionsDetail[i].name;
+                              // let optionName = optionsDetail[i].name;
                       // Options map filter from data store 
                               optionsFilterResult = dataStoreNamespaceOptions.filter(function(option) {
                                 return option.mapCode === columnValue;
@@ -153,32 +190,33 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
                       
                     }); // end await  
                   }
-                  if (csvColumnName === config.dateColumn) {
+                  if (csvColumnName === eventDate) {
                     eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
                   }
     
                   // Attributes filter from data store
-                  attributesFilterResult = dataStoreNamespaceAttributes.filter(function (attribute) {
+                  attributesFilterResult = dataStoreNamespaceAttributes.find(function (attribute) {
                     return attribute.mapCode === csvColumnName;
                   });
                 }
-    
-                if (attributesFilterResult.length >= 1) {
+                
+                if (attributesFilterResult && Object.keys(attributesFilterResult).length >= 1) {
+
                   let attributeValue;
-                  attributeId = attributesFilterResult[0].id;
+                  attributeId = attributesFilterResult.id;
                   let matchResult = columnValue.match(/\//g);
     
                   if (matchResult !== null && matchResult.length === 2) {
                     attributeValue = formatDate(columnValue);
                   }
-    
-                  if (csvColumnName === config.patientIdColumn) {
+                  
+                  if (csvColumnName === registrationNo) {                
                     attributeValue = hash(columnValue.replace(/[=><_]/gi, ''));
                   } else {
                     attributeValue = columnValue.replace(/[=><_]/gi, '');
                   }
     
-                  if (importFileType == 'multiLab') {
+                  if (importFileType == 'lab') {
                   // Options checking for attributes
                     await getAttributeDetails(attributeId).then((attributeResponse) => {
                     
@@ -194,7 +232,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
                           let optionsDetail = osResponse.data.options;
                           for (let i = 0; i < optionsDetail.length; i++) {
     
-                            let optionName = optionsDetail[i].name;
+                            // let optionName = optionsDetail[i].name;
                     // Options map filter from data store 
                             optionsFilterResult = dataStoreNamespaceOptions.filter(function(option) {
                               return option.mapCode === columnValue;
@@ -224,36 +262,37 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
                     teiPayload[index] = {
                         "attribute": attributeId,
                         "value": attributeValue
-                      };
+                      }; 
                   }                
     
                   // Duplicate Patient ID checking
-                  if (csvColumnName === config.patientIdColumn) {
+                  if (csvColumnName === registrationNo) {
                     const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                     duplicate[index] = result;
-                    if (typeof result !== 'undefined') {
-                      duplicateStatus = result
+
+                    if (typeof result !== 'undefined' && result.result >= 1) {
+                      duplicateStatus = true;
+                      trackedEntityInstance = result.teiId;
                     } else {
-                      duplicateStatus = false 
+                      duplicateStatus = false;
+                      trackedEntityInstance = null; 
                     }
+
+                    
                   }
                 }
                 return duplicate;
               })(csvObj[j], {}, j);
+              console.log({duplicateStatus});
             }
     
             /**
             * Generates AMR Id by the combination of OU code and a random integer value.
+            * AmrID is unique for all lab for all record
+            * If the newly generated amrid is matched with existing one the new one will be re-genreated and return for this record
             * @eventsPayloadUpdated returns updated json payload with dynamically generated amrid
             */
-            let orgUnitCode;
-            const getOrgUnitCode = await getOrgUnitDetail(orgUnitId);
-            if (typeof getOrgUnitCode.data !== 'undefined') {
-              orgUnitCode = getOrgUnitCode.data.code;
-            } else {
-              orgUnitCode = "";
-            }
-            const getAmrId = await generateAmrId(orgUnitId, orgUnitCode);
+            
             let amrIdPayload = [{
               "dataElement": config.amrIdDataElement,
               "value": getAmrId
@@ -265,7 +304,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
             * @{Object.keys(teiPayload)} checkes the json payload length
             * @{teiPayloadString} returns json payload with non-duplicate data to create new entity
             */
-    
+            console.log({duplicateStatus});
             if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length || !duplicateStatus) {
     
               teiPayloadString[currentIndex] = {
@@ -293,8 +332,12 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
             * @{teiPayloadString} returns json payload with duplicate data to update exinsting enrollment
             */
             if (duplicateStatus) {
-              teiPayloadString[currentIndex] = {
-                "trackedEntityInstance": duplicateStatus.teiId,
+              // Get event id to update duplicate
+
+              const eventId = await getEventId(config.programId, orgUnitId,trackedEntityInstance);
+
+              /*teiPayloadString[currentIndex] = {
+                "trackedEntityInstance": this.state.trackedEntityInstance,
                 "trackedEntityType": config.trackedEntityType,
                 "orgUnit": orgUnitId,
                 "attributes": Object.values(teiPayload),
@@ -312,7 +355,20 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
                     "dataValues": Object.values(eventsPayloadUpdated)
                   }]
                 }]
+              };*/
+              eventPayloadString[currentIndex] = {
+                
+                  "program": config.programId,
+                  "orgUnit": orgUnitId,
+                  "event": eventId,
+                  "eventDate": eventDate,
+                  "status": "ACTIVE",
+                  "programStage": config.programStage,
+                  "dataValues": Object.values(eventsPayloadUpdated)
+                
               };
+
+              console.log({eventPayloadString});
             }
     
             return duplicateStatus;
@@ -323,25 +379,35 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType) => {
         * @{teiPayloadString}-contains the new and duplicate payload
         * @{trackedEntityJson} - returns the final json payload 
         */
+        console.log({teiPayloadString});
         if ((typeof teiPayloadString !== 'undefined' || teiPayloadString !== null)) {
+
           trackedEntityJson = '{"trackedEntityInstances": ' + JSON.stringify(Object.entries(teiPayloadString).map(payload => payload[1])) + '}';
+
           console.log("Final teiPayloadString payload: ", trackedEntityJson);
         }
     
         if (typeof teiPayloadString !== 'undefined') {
             try {
-                let responseData = await createTrackedEntity(trackedEntityJson);
-                if (typeof responseData.data !== 'undefined') {
-                    if (responseData.data.httpStatus === "OK") {
-                        return { success: "Your data was successfully uploaded", error: false} 
-                    } 
-                    else {
-                        return { success: false, error: "Unable to import Whonet file"} 
-                    }
-                } 
-                else { // Axios return 409 or ERROR
-                    return { success: false, error: "Unable to import Whonet file"}                     
-                }
+
+              let finalEventUpdatePayload = '{"events": ' +JSON.stringify(Object.entries(eventPayloadString).map(payload => payload[1]))+ '}';
+
+              let teiResponseData   = await createTrackedEntity(trackedEntityJson);
+              let eventResponseData = await updateEvent(finalEventUpdatePayload);
+              console.log("Final teiResponseData payload: ", teiResponseData);
+              console.log("Final eventResponseData payload: ", eventResponseData);
+
+              if (typeof teiResponseData.data !== 'undefined') {
+                  if (teiResponseData.data.httpStatus === "OK") {
+                      return { success: "Your data was successfully uploaded", error: false} 
+                  } 
+                  else {
+                      return { success: false, error: "Unable to import Whonet file"} 
+                  }
+              } 
+              else { // Axios return 409 or ERROR
+                  return { success: false, error: "Unable to import Whonet file"}                     
+              }
             } catch (err) {
               console.log(err)
           }
