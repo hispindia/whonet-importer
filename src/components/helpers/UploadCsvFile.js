@@ -33,7 +33,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
       let dataStoreNamespaceElements   = [];
       let dataStoreNamespaceAttributes = [];
       let dataStoreNamespaceOptions    = [];
-      let duplicateStatus = false;
+      let duplicateRecordStatus = false;
       let eventPayloadString = {};
 
       
@@ -264,17 +264,17 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                         "value": attributeValue
                       }; 
                   }                
-    
+                  
                   // Duplicate Patient ID checking
                   if (csvColumnName === registrationNo) {
+
                     const result = await isDuplicate(hash(columnValue.replace(/[=><_]/gi, '')), orgUnitId, attributeId);
                     duplicate[index] = result;
-
                     if (typeof result !== 'undefined' && result.result >= 1) {
-                      duplicateStatus = true;
+                      duplicateRecordStatus = true;
                       trackedEntityInstance = result.teiId;
                     } else {
-                      duplicateStatus = false;
+                      duplicateRecordStatus = false;
                       trackedEntityInstance = null; 
                     }
 
@@ -283,7 +283,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                 }
                 return duplicate;
               })(csvObj[j], {}, j);
-              console.log({duplicateStatus});
+              
             }
     
             /**
@@ -304,34 +304,36 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
             * @{Object.keys(teiPayload)} checkes the json payload length
             * @{teiPayloadString} returns json payload with non-duplicate data to create new entity
             */
-            console.log({duplicateStatus});
-            if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length || !duplicateStatus) {
+            if (!duplicateRecordStatus) {
+              if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length) {
     
-              teiPayloadString[currentIndex] = {
-                "trackedEntityType": config.trackedEntityType,
-                "orgUnit": orgUnitId,
-                "attributes": Object.values(teiPayload),
-                "enrollments": [{
+                teiPayloadString[currentIndex] = {
+                  "trackedEntityType": config.trackedEntityType,
                   "orgUnit": orgUnitId,
-                  "program": config.programId,
-                  "enrollmentDate": eventDate,
-                  "incidentDate": eventDate,
-                  "events": [{
-                    "program": config.programId,
+                  "attributes": Object.values(teiPayload),
+                  "enrollments": [{
                     "orgUnit": orgUnitId,
-                    "eventDate": eventDate,
-                    "status": "ACTIVE",
-                    "programStage": config.programStage,
-                    "dataValues": Object.values(eventsPayloadUpdated)
+                    "program": config.programId,
+                    "enrollmentDate": eventDate,
+                    "incidentDate": eventDate,
+                    "events": [{
+                      "program": config.programId,
+                      "orgUnit": orgUnitId,
+                      "eventDate": eventDate,
+                      "status": "ACTIVE",
+                      "programStage": config.programStage,
+                      "dataValues": Object.values(eventsPayloadUpdated)
+                    }]
                   }]
-                }]
-              };
+                };
+              }
             }
+            
             /**
             * @{duplicateStatus} checkes the existing enrollment 
             * @{teiPayloadString} returns json payload with duplicate data to update exinsting enrollment
             */
-            if (duplicateStatus) {
+            if (duplicateRecordStatus) {
               // Get event id to update duplicate
 
               const eventId = await getEventId(config.programId, orgUnitId,trackedEntityInstance);
@@ -368,7 +370,6 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                 
               };
 
-              console.log({eventPayloadString});
             }
     
             return duplicateStatus;
@@ -379,7 +380,6 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
         * @{teiPayloadString}-contains the new and duplicate payload
         * @{trackedEntityJson} - returns the final json payload 
         */
-        console.log({teiPayloadString});
         if ((typeof teiPayloadString !== 'undefined' || teiPayloadString !== null)) {
 
           trackedEntityJson = '{"trackedEntityInstances": ' + JSON.stringify(Object.entries(teiPayloadString).map(payload => payload[1])) + '}';
@@ -397,9 +397,18 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
               console.log("Final teiResponseData payload: ", teiResponseData);
               console.log("Final eventResponseData payload: ", eventResponseData);
 
-              if (typeof teiResponseData.data !== 'undefined') {
+              if (typeof teiResponseData.data !== 'undefined') {                  
+
                   if (teiResponseData.data.httpStatus === "OK") {
-                      return { success: "Your data was successfully uploaded", error: false} 
+
+                      return { 
+                        success: "Your data was successfully uploaded", 
+                        error: false, 
+                        teiResponse: teiResponseData.data.response,
+                        eventResponse: eventResponseData.data.response,
+                        /*teiResponseString: JSON.stringify(teiResponseData.data.response),
+                        eventResponseString: JSON.stringify(eventResponseData.data.response),*/
+                      } 
                   } 
                   else {
                       return { success: false, error: "Unable to import Whonet file"} 

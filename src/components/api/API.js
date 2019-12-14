@@ -56,6 +56,7 @@ export const isDuplicateTei = (trackedEntityInstances, input) => {
 
 export const isDuplicate = (input, orgUnitId, attributeId) => {
 
+
 	let duplicateValue=[];
 	let matchResult;
     if(typeof attributeId !== 'undefined' && typeof input !== 'undefined'){
@@ -71,6 +72,7 @@ export const isDuplicate = (input, orgUnitId, attributeId) => {
               matchResult = duplicateValue.filter(function(data){
                   return data.value === input;
               });
+              // console.log({"teiId": teiId, "result": matchResult.length});
               return {"teiId": teiId, "result": matchResult.length};
           }           
       }).catch(function (error) {

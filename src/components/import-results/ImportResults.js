@@ -4,6 +4,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../ui/Styles';
+import { Card } from '@dhis2/ui-core';
 
 export default class ImportResults extends React.Component {
 	render () {
@@ -102,13 +103,13 @@ export default class ImportResults extends React.Component {
 	        </Table>
 
 		} else {
-
+			let data = this.props.teiResponse;	
 			let updateCount = 0, teiUpdateCount = 0, eventUpdateCount = 0, totalCount = 0, totalUpdated = 0, totalImported = 0, totalIgnored = 0, teiIgnored = 0, eventIgnored = 0; 
 			
-			teiUpdateCount   = this.props.teiResponse.response.updated;
-			totalImported    = this.props.teiResponse.response.total;
-			eventUpdateCount = this.props.eventResponse.response.updated;				
-			totalUpdated     = this.props.eventResponse.response.total;
+			teiUpdateCount   = data.updated;
+			totalImported    = data.total;
+			eventUpdateCount = this.props.eventResponse.updated;				
+			totalUpdated     = this.props.eventResponse.total;
 
 			updateCount  = Number(teiUpdateCount) + Number(eventUpdateCount);
 			totalCount   = Number(totalImported) + Number(totalUpdated);
@@ -123,7 +124,7 @@ export default class ImportResults extends React.Component {
 		          Imported
 		          </TableCell> 
 		          <TableCell style={styleProps.styles.tableHeader}>
-		          {this.props.teiResponse.response.imported}
+		          {data.imported}
 		          </TableCell>
 		        </TableRow> 
 		        <TableRow>
@@ -163,8 +164,10 @@ export default class ImportResults extends React.Component {
 		}
 
 		return (
-      <div>
-      	{tableData}
+      <div className="importPreview">
+      	<Card className="importPreview">
+      		{tableData}
+      	</Card>
       </div>
 		);
 	}

@@ -26,7 +26,12 @@ class Main extends Component {
             requiredColumnsAttValue: [],
             dataElements: [],
             attributes: [],
-            eventDate: ""
+            eventDate: "",
+            teiResponse: [],
+            teiResponseString: "",
+            eventResponse: [],
+            eventResponseString: "",
+            importResult: false,
         };
         
     }
@@ -109,7 +114,12 @@ class Main extends Component {
                 })
 
                 await uploadCsvFile(this.state.importFile, this.state.orgUnitId, this.state.importFileType, this.state.requiredColumnsAttValue, this.state.dataElements, this.state.attributes, this.state.eventDate).then((response) => {
-                    console.log("Response from uploadCsvFile: " + JSON.stringify(response))
+                    //console.log("Response from uploadCsvFile: " + JSON.stringify(response))
+                    this.setState({
+                        teiResponse: response.teiResponse,
+                        eventResponse: response.eventResponse,
+                        importResult: true,
+                    });
                     this.fileUploadFeedback(response)
                 });
             } 
@@ -134,14 +144,16 @@ class Main extends Component {
           })
         }
         else {
-            this.setState({
+            
+            this.setState({               
                 feedbackToUser:
                 <AlertStack>
                     <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
                         {response.error}
                     </AlertBar>
                 </AlertStack>
-          });
+            });
+
         } 
     }    
 
@@ -157,6 +169,21 @@ class Main extends Component {
     }
 
     render() {
+        let teiResponse, importPreview;
+        if (this.state.teiResponse.status == "SUCCESS" || this.state.teiResponse.status == "ERROR") {
+          teiResponse = <ImportResults teiResponse={this.state.teiResponse} eventResponse={this.state.eventResponse} />
+          // logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} eventResponseString={this.state.eventResponseString}/>
+        }
+
+        if (!this.state.importResult) {
+          importPreview = <ImportPreview 
+                importFile={this.state.importFile} 
+                orgUnitId={this.state.orgUnitId} 
+                importFileType={this.state.importFileType}/>;
+        } else {
+          importPreview = teiResponse;
+        }
+
         return (
             <div className='pageContainer'>
               
@@ -171,11 +198,7 @@ class Main extends Component {
                 dataStoreNamespaceCheck = {this.dataStoreNamespaceCheck}
                 callbackRequiredColumnsAtt = {this.callbackRequiredColumnsAttValue}
                 />
-
-                <ImportPreview 
-                importFile={this.state.importFile} 
-                orgUnitId={this.state.orgUnitId} 
-                importFileType={this.state.importFileType}/>
+                {importPreview}               
                 
                 {this.state.feedbackToUser}                                    
             </div>
