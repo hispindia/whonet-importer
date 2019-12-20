@@ -1,16 +1,12 @@
 import {
-    getPrograms,
-    getAttributes,
+    
     getAttributeDetails,
     isDuplicate,
     createTrackedEntity,
-    checkOrgUnitInProgram,
     getOrgUnitDetail,
-    generateAmrId,
     amrIdSqlView,
     getDataStoreNameSpace,
     getElementDetails,
-    getOptionDetails,
     getOptionSetDetails,
     getEventId,
     updateEvent,
@@ -100,7 +96,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                 let elementsFilterResult, attributesFilterResult, optionsFilterResult;
                 let splittedValue  = columnName.split(","); // remove the C,2 or C,6 portion
                 let csvColumnName  = splittedValue[0];
-                if (importFileType == 'whonet') {
+                if (importFileType === 'whonet') {
 
                   // Elements filter from whonet code
                   elementsFilterResult = dataElements.find((element) => {
@@ -216,11 +212,11 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                     attributeValue = columnValue.replace(/[=><_]/gi, '');
                   }
     
-                  if (importFileType == 'lab') {
+                  if (importFileType === 'lab') {
                   // Options checking for attributes
                     await getAttributeDetails(attributeId).then((attributeResponse) => {
                     
-                    if(typeof attributeResponse!== 'undefined' && typeof attributeResponse.data.optionSet !== 'undefined'){
+                    if(typeof attributeResponse !== 'undefined' && typeof attributeResponse.data.optionSet !== 'undefined'){
     
                       let attributeId = attributeResponse.data.id;
                       let optionSetId = attributeResponse.data.optionSet;

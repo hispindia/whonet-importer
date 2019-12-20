@@ -10,6 +10,12 @@ body {
     font-size: 18px;
     font-weight: bold;
 }
+
+.datastoreKeyNF{
+    color: red;
+    font-size: 18px;
+    font-weight: bold;
+}
 .pageContainer {
     width: 100%;
     display: flex;

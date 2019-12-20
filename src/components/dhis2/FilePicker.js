@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Button } from '@dhis2/ui-core';
 import Papa from 'papaparse';
 import {
   checkOrgUnitInProgram, 
@@ -8,7 +7,6 @@ import {
   getMultipleAttributes,
   createDateStoreNameSpace, 
 } from '../api/API';
-import { Modal } from '@dhis2/ui-core';
 class FilePicker extends Component {
     constructor(props) {
         super(props);
@@ -37,7 +35,7 @@ class FilePicker extends Component {
       }).catch( error =>{
 
         // If no namespace is found then create 
-        if (error.response.data.httpStatusCode == 404 ) {
+        if (error.response.data.httpStatusCode === 404 ) {
           createDateStoreNameSpace('api/dataStore/whonet/requiredFields', JSON.stringify({"eventDate": [],"reqElements": [],"reqAttributes": []})).then(info=>{
             // this.props.giveUserFeedback(info.data);
             console.log("Info: ", info.data);
@@ -51,11 +49,11 @@ class FilePicker extends Component {
       // Required mapping message in alert box in window load
       this.requiredFields().then((value)=>{
         let requiredVal = value.map( (data, i) =>{
-            if (typeof data.code == 'undefined') return <li key={i}> Mapping is required for {data.name}</li>
+            if (typeof data.code === 'undefined') return <li key={i}> Mapping is required for {data.name}</li>
           });
         requiredVal.map((info)=>{
           if (typeof info !== 'undefined') {
-            // this.props.giveUserFeedback(requiredVal)
+            this.props.giveUserFeedback(requiredVal)
           }
         })  
    
@@ -70,63 +68,46 @@ class FilePicker extends Component {
     */
     async requiredFields() {
 
-      let eventMessage = new Array();
-      let deMessage   = new Array();
-      let messaageArr = new Array();
+      let eventMessage = [];
+      let deMessage    = [];
+      let messaageArr  = [];
 
-      try {       
+      try { 
+        
+        this.props.dataStoreNamespaceCheckCallback(this.state.eventDate, this.state.requiredColumnsDe, this.state.requiredColumnsAtt );
+        if (typeof this.state.eventDate !== 'undefined' ) {
 
-        // Missing event date alert
-        if (this.state.eventDate.length === 0 ) {  
-          eventMessage = [{name: "Event date"}];
-        }
-   
-        // Missing required data in data store, if the required fields mapping is empty in data store
-        if (this.state.eventDate[0] == 'undefined' || this.state.eventDate.length == 0) {
-          this.setState({
-            requiredFieldsDSStatus: true,
-            requiredFieldsDSMessage : "Sorry, datastore event date format is invalid! Please map the sample collection date from left side change mapping.",
-
-          });  
-        } else if(this.state.requiredColumnsDe.length == 0 ) {
-         this.setState({
-            requiredFieldsDSStatus: true,
-            requiredFieldsDSMessage : "Sorry, datastore required elements are missing! Please add the required elements uid in datastore 'requiredFields' key.",
-
+          // Missing elements alert
+          await getMultipleElements(this.state.requiredColumnsDe).then((response) => {
+            // deMessage = [...response.data.dataElements];
+            deMessage.push(...response.data.dataElements);
+            // deMessage = eventMessage.concat(response.data.dataElements);
+            this.setState({
+              // disableImportButton: true,
+              requiredColumnsDeValue: response.data.dataElements
+            });      
           });
-        } else if (this.state.requiredColumnsAtt.length == 0 ) {
-          this.setState({
-            requiredFieldsDSStatus: true,
-            requiredFieldsDSMessage : "Sorry, datastore required elements are missing! Please add the required attributes uid in datastore 'requiredFields' key.",
 
-          }); 
+          //Missing attributes alert
+          await getMultipleAttributes(this.state.requiredColumnsAtt).then((response) => {
+            messaageArr = deMessage.concat(response.data.trackedEntityAttributes);
+            this.setState({
+              // disableImportButton: true,
+              requiredColumnsAttValue: response.data.trackedEntityAttributes
+            });      
+          });
+
+          // Call back to main component
+          this.props.callbackRequiredColumnsAtt(this.state.requiredColumnsAttValue, this.state.eventDate[0]);         
+          
         }
-
-        // this.props.dataStoreNamespaceCheckCallback(this.state.requiredFieldsDSStatus, this.state.requiredFieldsDSMessage);
-        // Missing elements alert
-        await getMultipleElements(this.state.requiredColumnsDe).then((response) => {
-          // deMessage = [...response.data.dataElements];
-          deMessage.push(...response.data.dataElements);
-          // deMessage = eventMessage.concat(response.data.dataElements);
-          this.setState({
-            // disableImportButton: true,
-            requiredColumnsDeValue: response.data.dataElements
-          });      
-        });
-
-        //Missing attributes alert
-        await getMultipleAttributes(this.state.requiredColumnsAtt).then((response) => {
-          messaageArr = deMessage.concat(response.data.trackedEntityAttributes);
-          this.setState({
-            // disableImportButton: true,
-            requiredColumnsAttValue: response.data.trackedEntityAttributes
-          });      
-        });
-
-        // Call back to main component
-        this.props.callbackRequiredColumnsAtt(this.state.requiredColumnsAttValue, this.state.eventDate[0]);
 
       } catch (err) {
+        this.setState({
+          requiredFieldsDSStatus: true,
+          requiredFieldsDSMessage : "Sorry, datastore event date format is invalid! Please map the sample collection date from left side change mapping.",
+
+        });
         console.log(err);
       }
       
@@ -141,8 +122,8 @@ class FilePicker extends Component {
     */
     async requiredImportFileHeader(csvData){
 
-      let mappingMessageArr = new Array();
-      let requiredColsArr   = new Array();
+      let mappingMessageArr = [];
+      let requiredColsArr   = [];
       let dataELResArr  = this.state.requiredColumnsDeValue;
       let dataAttResArr = this.state.requiredColumnsAttValue;
 
@@ -178,7 +159,7 @@ class FilePicker extends Component {
           return function(current){
             return otherArray.filter(function(other){            
               return other.code === current.code            
-            }).length == 0;
+            }).length === 0;
           }
         }
         // console.log({requiredColsArr})
@@ -216,7 +197,7 @@ class FilePicker extends Component {
           // Check the org unit assigned or not and return the status as callback function
           checkOrgUnitInProgram(this.props.orgUnitId).then(result => {
 
-            if (typeof result == 'undefined') {
+            if (typeof result === 'undefined') {
               this.setState({
                 programAssignedStatus: true, // Not assigned
               });

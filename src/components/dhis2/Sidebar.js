@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import WhonetController from '../../controllers/WhonetController';
+// import WhonetController from '../../controllers/WhonetController';
 import 'regenerator-runtime/runtime';
-import { Card, Modal, Button, Radio, Divider } from '@dhis2/ui-core';
+import { Modal, Button, Radio, Divider } from '@dhis2/ui-core';
 import '../../style/dhis2UiStyle.css';
 import { OrgUnitTree } from '@hisp-amr/org-unit-tree';
 import HelpModal from '../../components/settings/HelpModal';
 import MappingModal from '../settings/MappingModal';
-import * as config from '../../config/Config';
+// import * as config from '../../config/Config';
 import FilePicker from './FilePicker';
 
 

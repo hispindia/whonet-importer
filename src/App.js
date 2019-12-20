@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { App as D2UIApp, mui3theme as dhis2theme } from '@dhis2/d2-ui-core';
 import HeaderBar from './components/dhis2/HeaderBar';
-import Sidebar from './components/dhis2/Sidebar';
+// import Sidebar from './components/dhis2/Sidebar';
 import ImportPreview from './components/dhis2/ImportPreview';
 import Main from './components/dhis2/Main';
 

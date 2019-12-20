@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+// import PropTypes from 'prop-types';
 import Sidebar from './Sidebar';
 import ImportPreview from './ImportPreview';
 import ImportResults from './../import-results/ImportResults';
-import { Button, Modal, ButtonStrip, AlertBar, AlertStack } from '@dhis2/ui-core';
-import Papa from 'papaparse';
+import { Button, Modal, ButtonStrip, AlertBar, AlertStack, CircularLoader } from '@dhis2/ui-core';
+// import Papa from 'papaparse';
 import { 
   checkOrgUnitInProgram,
   getAttributes,
@@ -32,6 +32,11 @@ class Main extends Component {
             eventResponse: [],
             eventResponseString: "",
             importResult: false,
+            loading: false,
+            eventDate: [], 
+            requiredColumnsDe:[],
+            requiredColumnsAtt:[],
+            namespaceNotfoundMessage: false,
         };
         
     }
@@ -119,6 +124,7 @@ class Main extends Component {
                         teiResponse: response.teiResponse,
                         eventResponse: response.eventResponse,
                         importResult: true,
+                        loading: false
                     });
                     this.fileUploadFeedback(response)
                 });
@@ -157,36 +163,57 @@ class Main extends Component {
         } 
     }    
 
-    dataStoreNamespaceCheck = (status, message) =>{
-      console.log({status, message});
+    dataStoreNamespaceCheck = (eventDate, requiredColumnsDe, requiredColumnsAtt) =>{
+      this.setState({
+        eventDate, 
+        requiredColumnsDe,
+        requiredColumnsAtt,
+        namespaceNotfoundMessage: true, 
+      });
     }
 
     callbackRequiredColumnsAttValue = (requiredColumnsAttValue, eventDate) =>{
-     this.setState({
-      requiredColumnsAttValue: requiredColumnsAttValue,
-      eventDate: eventDate 
-    })
+      this.setState({
+        requiredColumnsAttValue: requiredColumnsAttValue,
+        eventDate: eventDate 
+      });
     }
 
     render() {
-        let teiResponse, importPreview;
-        if (this.state.teiResponse.status == "SUCCESS" || this.state.teiResponse.status == "ERROR") {
+        let teiResponse, importPreview, importLoader;
+        if (this.state.teiResponse.status === "SUCCESS" || this.state.teiResponse.status === "ERROR") {
           teiResponse = <ImportResults teiResponse={this.state.teiResponse} eventResponse={this.state.eventResponse} />
           // logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} eventResponseString={this.state.eventResponseString}/>
+        }
+
+        if (this.state.loading) {
+          importLoader = <CircularLoader className='circularLoader'/>
         }
 
         if (!this.state.importResult) {
           importPreview = <ImportPreview 
                 importFile={this.state.importFile} 
                 orgUnitId={this.state.orgUnitId} 
-                importFileType={this.state.importFileType}/>;
+                importFileType={this.state.importFileType}
+                eventDate = {this.state.eventDate}
+                requiredColumnsDe = { this.state.requiredColumnsDe }
+                requiredColumnsAtt = { this.state.requiredColumnsAtt } 
+                />;
         } else {
           importPreview = teiResponse;
         }
 
+        if (this.state.namespaceNotfoundMessage) {
+          importPreview = <ImportPreview 
+                eventDate = {this.state.eventDate}
+                requiredColumnsDe = { this.state.requiredColumnsDe }
+                requiredColumnsAtt = { this.state.requiredColumnsAtt } 
+                />;
+        }
+
         return (
             <div className='pageContainer'>
-              
+                {importLoader}
                 <Sidebar 
                 fileUploadPreAlert = {this.fileUploadPreAlert} 
                 disabled = {this.state.importFile===undefined} 
