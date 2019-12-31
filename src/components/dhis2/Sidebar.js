@@ -21,7 +21,6 @@ export default class Sidebar extends React.Component {
 		disabled: true,
 	}		
 	
-
 	handleOrgUnitSelect = ({id, displayName}) => {
 		this.setState({userOrgUnitId : id, userOrgUnitName: displayName});
 		// console.log("Setting orgUnit: " + displayName + " and org unit id: " + id)
@@ -33,11 +32,15 @@ export default class Sidebar extends React.Component {
 	* @{return}-callback result from FilPicker component
 	* @{Set}-button and program assignment status as true/false
 	*/
-	orgUnitAssignmentCallback = (dataFromChild, disabled) => {
+	orgUnitAssignmentCallback = (assignStatus, disableStatus) => {
 
+		// If not found any key in namespace datastore the import button will be
+		if (this.props.dtNotFoundStatus) {
+			disableStatus = this.props.dtNotFoundStatus;
+		}
 		this.setState({
-      disabled: disabled,
-      programAssignedStatus: dataFromChild,
+      disabled: disableStatus,
+      programAssignedStatus: assignStatus,
     });
 	}
 

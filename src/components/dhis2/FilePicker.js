@@ -75,6 +75,7 @@ class FilePicker extends Component {
       try { 
         
         this.props.dataStoreNamespaceCheckCallback(this.state.eventDate, this.state.requiredColumnsDe, this.state.requiredColumnsAtt );
+
         if (typeof this.state.eventDate !== 'undefined' ) {
 
           // Missing elements alert
@@ -200,10 +201,12 @@ class FilePicker extends Component {
             if (typeof result === 'undefined') {
               this.setState({
                 programAssignedStatus: true, // Not assigned
+                disabled: true,
               });
             } else {
               this.setState({
                 programAssignedStatus: false,
+                disabled: false,
               });
             }
             // Call back to sidebar component

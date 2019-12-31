@@ -164,12 +164,23 @@ class Main extends Component {
     }    
 
     dataStoreNamespaceCheck = (eventDate, requiredColumnsDe, requiredColumnsAtt) =>{
-      this.setState({
-        eventDate, 
-        requiredColumnsDe,
-        requiredColumnsAtt,
-        namespaceNotfoundMessage: true, 
-      });
+      
+      if (typeof eventDate === 'undefined' || typeof requiredColumnsDe === 'undefined' || typeof requiredColumnsAtt === 'undefined') {
+        this.setState({
+          eventDate, 
+          requiredColumnsDe,
+          requiredColumnsAtt,
+          namespaceNotfoundMessage: true, 
+        });
+      } else {
+        this.setState({
+          eventDate, 
+          requiredColumnsDe,
+          requiredColumnsAtt,
+          namespaceNotfoundMessage: false, 
+        });
+      }
+      
     }
 
     callbackRequiredColumnsAttValue = (requiredColumnsAttValue, eventDate) =>{
@@ -195,19 +206,20 @@ class Main extends Component {
                 importFile={this.state.importFile} 
                 orgUnitId={this.state.orgUnitId} 
                 importFileType={this.state.importFileType}
-                eventDate = {this.state.eventDate}
-                requiredColumnsDe = { this.state.requiredColumnsDe }
-                requiredColumnsAtt = { this.state.requiredColumnsAtt } 
                 />;
         } else {
           importPreview = teiResponse;
         }
 
-        if (this.state.namespaceNotfoundMessage) {
+
+        if (typeof this.state.eventDate === 'undefined' || typeof this.state.requiredColumnsDe === 'undefined' || typeof this.state.requiredColumnsAtt === 'undefined') {
+
           importPreview = <ImportPreview 
                 eventDate = {this.state.eventDate}
                 requiredColumnsDe = { this.state.requiredColumnsDe }
-                requiredColumnsAtt = { this.state.requiredColumnsAtt } 
+                requiredColumnsAtt = { this.state.requiredColumnsAtt }
+                dtNotFoundStatus = {this.state.namespaceNotfoundMessage}
+                importFile={this.state.importFile} 
                 />;
         }
 
@@ -224,6 +236,7 @@ class Main extends Component {
                 giveUserFeedback = {this.giveUserFeedback} 
                 dataStoreNamespaceCheck = {this.dataStoreNamespaceCheck}
                 callbackRequiredColumnsAtt = {this.callbackRequiredColumnsAttValue}
+                dtNotFoundStatus = {this.state.namespaceNotfoundMessage}
                 />
                 {importPreview}               
                 

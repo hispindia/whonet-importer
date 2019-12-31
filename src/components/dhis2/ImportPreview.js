@@ -34,22 +34,19 @@ class ImportPreview extends Component {
     render() {
         let filePreview, eventDateMessage, deMessage, attrMessage;
 
-        console.log(this.props.eventDate);
-        console.log(this.props.requiredColumnsDe);
-        console.log(this.props.requiredColumnsAtt);
-        if (typeof this.props.eventDate === 'undefined' || this.props.eventDate.length === 0) {
-          eventDateMessage = <p className="datastoreKeyNF"> Sorry, datastore event date format is invalid! Please map the sample collection date from left side change mapping. </p>;
+          if (this.props.dtNotFoundStatus && (typeof this.props.eventDate === 'undefined' || this.props.eventDate.length === 0)) {
+            eventDateMessage = <p className="datastoreKeyNF"> Sorry, datastore event date format is invalid! Please map the sample collection date from left side change mapping. </p>;
 
-        } 
-        if(typeof this.props.requiredColumnsDe === 'undefined' || this.props.requiredColumnsDe.length === 0) {
-          deMessage = <p className="datastoreKeyNF">Sorry, datastore required elements are missing! Please add the required elements uid in datastore 'requiredFields' key as "reqElements": [ "elements UID" ].</p>;
+          } 
+          if(this.props.dtNotFoundStatus && (typeof this.props.requiredColumnsDe === 'undefined' || this.props.requiredColumnsDe.length === 0)) {
+            deMessage = <p className="datastoreKeyNF">Sorry, datastore required elements are missing! Please add the required elements uid in datastore 'requiredFields' key as "reqElements": [ "elements UID" ].</p>;
 
-        } 
-        if(typeof this.props.requiredColumnsAtt === 'undefined' || this.props.requiredColumnsAtt.length === 0) {
+          } 
+          if(this.props.dtNotFoundStatus && (typeof this.props.requiredColumnsAtt === 'undefined' || this.props.requiredColumnsAtt.length === 0)) {
 
-          attrMessage = <p className="datastoreKeyNF">Sorry, datastore required attributes are missing! Please add the required attributes uid in datastore 'requiredFields' key as "reqAttributes": [ "attribute UID" ].</p>;
-        }
-
+            attrMessage = <p className="datastoreKeyNF">Sorry, datastore required attributes are missing! Please add the required attributes uid in datastore 'requiredFields' key as "reqAttributes": [ "attribute UID" ].</p>;
+          }
+        
         if (this.props.importFile!==undefined) {
             filePreview = <CsvMappingColumns 
               csvData={this.props.importFile.data[0]} 
