@@ -409,9 +409,16 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   else {
                       return { success: false, error: "Unable to import Whonet file"} 
                   }
-              } 
-              else { // Axios return 409 or ERROR
-                  return { success: false, error: "Unable to import Whonet file"}                     
+              } else if(teiResponseData.status === 'ERROR' && teiResponseData.ignored > 0){
+                  
+                  return { 
+                    success: false, 
+                    error: "Unable to import Whonet file. Conflict in updating!",
+                    teiResponse: teiResponseData.importSummaries[0],
+                    eventResponse: eventResponseData.data.response,
+                  }
+              } else { // Axios return 409 or ERROR
+                return { success: false, error: "Unable to import Whonet file"}                     
               }
             } catch (err) {
               console.log(err)
