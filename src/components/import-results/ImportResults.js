@@ -5,11 +5,14 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import * as styleProps  from '../ui/Styles';
 import { Card } from '@dhis2/ui-core';
+import Alert from '@material-ui/lab/Alert';
 
 export default class ImportResults extends React.Component {
 	render () {
 		let tableData;
-		if(this.props.teiResponse.status === 'ERROR'){
+		if (this.props.teiResponse.status === 'ERROR') {
+						let errormsj = this.props.teiResponse.message;
+
 			tableData = <Table>
 					<h3> Import Summary </h3>
 	          <TableBody>            
@@ -53,9 +56,68 @@ export default class ImportResults extends React.Component {
 		           1
 		          </TableCell>
 		        </TableRow>            
-	          </TableBody>          
+				</TableBody>          
+											    <div >
+      <Alert severity="error">{errormsj}</Alert>
+    </div>
 	        </Table>
-		} else if(typeof this.props.eventResponse === 'undefined'){ 
+		}
+		else if (this.props.eventResponse.status === 'ERROR') { 
+					
+			let errormsj = this.props.eventResponse.conflicts[0].value;
+			
+			tableData = <Table>
+					<h3> Import Summary </h3>
+	          <TableBody>            
+	            <TableRow>
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          Imported
+		          </TableCell> 
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          0
+		          </TableCell>
+		        </TableRow> 
+		        <TableRow>
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          Updated
+		          </TableCell> 
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          0
+		          </TableCell>
+		        </TableRow>   
+		        <TableRow>
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          Ignored
+		          </TableCell> 
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          0
+		          </TableCell>
+		        </TableRow>
+		        <TableRow>
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          Deleted
+		          </TableCell> 
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          0
+		          </TableCell>
+		        </TableRow>  
+		        <TableRow>
+		          <TableCell style={styleProps.styles.tableHeader}>
+		          Error
+		          </TableCell> 
+		          <TableCell style={styleProps.styles.tableHeader}>
+		           1
+		          </TableCell>
+		        </TableRow>            
+				</TableBody>     
+							    <div >
+      <Alert severity="error">{errormsj}</Alert>
+    </div>
+			</Table>
+
+
+		}
+		else if (typeof this.props.eventResponse === 'undefined') { 
 			tableData = <Table>
 					<h3> Import Summary </h3>
 	          <TableBody>            

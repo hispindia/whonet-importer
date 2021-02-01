@@ -150,15 +150,37 @@ class Main extends Component {
           })
         }
         else {
-            
-            this.setState({               
+          if (response.teiResponse.status === "ERROR") {
+                        this.setState({               
                 feedbackToUser:
                 <AlertStack>
                     <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
-                        {response.error}
+                        {response.teiResponse.message}
                     </AlertBar>
                 </AlertStack>
             });
+          }
+          else if(response.eventResponse.status === "ERROR"){
+                                    this.setState({               
+                feedbackToUser:
+                <AlertStack>
+                    <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+                        {response.eventResponse.conflicts[0].value}
+                    </AlertBar>
+                </AlertStack>
+            });
+          }
+          else {
+                this.setState({               
+                feedbackToUser:
+                <AlertStack>
+                    <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+                        {response.eventResponse.message}
+                    </AlertBar>
+                </AlertStack>
+            });
+          }
+
 
         } 
     }    
@@ -192,7 +214,7 @@ class Main extends Component {
 
     render() {
         let teiResponse, importPreview, importLoader;
-        if (this.state.teiResponse.status === "SUCCESS" || this.state.teiResponse.status === "ERROR") {
+        if ((this.state.teiResponse) && (this.state.teiResponse.status === "SUCCESS" || this.state.teiResponse.status === "ERROR")) {
           teiResponse = <ImportResults teiResponse={this.state.teiResponse} eventResponse={this.state.eventResponse} />
           // logger = <LoggerComponent teiResponse={this.state.teiResponse} teiResponseString={this.state.teiResponseString} eventResponseString={this.state.eventResponseString}/>
         }

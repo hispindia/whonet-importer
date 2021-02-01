@@ -96,8 +96,9 @@ export const createTrackedEntity = async (trackedEntityJson) => {
     }).then(response => {
        return response;
      })
-     .catch(error => {
-       return error.response.data.response;
+      .catch(error => {
+       console.log("Error Data",error.response.data.message)
+       return error.response;
      }); 
 
 };

@@ -301,8 +301,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
             * @{teiPayloadString} returns json payload with non-duplicate data to create new entity
             */
             if (!duplicateRecordStatus) {
-              if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length) {
-    
+              if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length) {    
                 teiPayloadString[currentIndex] = {
                   "trackedEntityType": config.trackedEntityType,
                   "orgUnit": orgUnitId,
@@ -393,9 +392,17 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
               console.log("Final teiResponseData payload: ", teiResponseData);
               console.log("Final eventResponseData payload: ", eventResponseData);
 
-              if (typeof teiResponseData.data !== 'undefined') {                  
+              if (typeof teiResponseData.data !== 'undefined' && eventResponseData.data !== 'undefined') {  
+                if (eventResponseData.status === 'ERROR' && eventResponseData.ignored > 0) {
+                  return { 
+                    success: false, 
+                    error: "Wrong Data Format present in file!",
+                    teiResponse: teiResponseData.data.response,
+                    eventResponse: eventResponseData.importSummaries[0],
+                  }
 
-                  if (teiResponseData.data.httpStatus === "OK") {
+                 }
+                  else if (teiResponseData.data.httpStatus === "OK") {
 
                       return { 
                         success: "Your data was successfully uploaded", 
@@ -405,7 +412,19 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                         /*teiResponseString: JSON.stringify(teiResponseData.data.response),
                         eventResponseString: JSON.stringify(eventResponseData.data.response),*/
                       } 
-                  } 
+                } 
+                else if (teiResponseData.status == "500") {
+                  let errormsj = teiResponseData.data.message;
+
+                      return { 
+                        success:errormsj, 
+                        error: true, 
+                        teiResponse: teiResponseData.data,
+                        eventResponse: eventResponseData.data,
+                        /*teiResponseString: JSON.stringify(teiResponseData.data.response),
+                        eventResponseString: JSON.stringify(eventResponseData.data.response),*/
+                      } 
+                  }
                   else {
                       return { success: false, error: "Unable to import Whonet file"} 
                   }
