@@ -23,6 +23,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
       let csvData = result.data;
       let elementId = "";
       let attributeId = "";
+      let eventDateValue = "";
       let elementValue = "";
       let teiPayloadString = {};
       let trackedEntityJson;
@@ -81,7 +82,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
 
       let trackedEntityInstance; 
 
-        for (let i = 0; i < csvData.length; i++) {
+  for (let i = 0; i < csvData.length; i++) {
 
             await (async (currentCsvData, duplicateStatus, currentIndex) => {
                 let eventsPayload = {};
@@ -90,13 +91,18 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                 let len           = csvObj.length;
 
             for (let j = 0; j < len - 1; j++) {
-
-                duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
+              duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
                 
                 let elementsFilterResult, attributesFilterResult, optionsFilterResult;
                 let splittedValue  = columnName.split(","); // remove the C,2 or C,6 portion
                 let csvColumnName  = splittedValue[0];
                 if (importFileType === 'whonet') {
+                  
+                  if (csvColumnName === eventDate) {                    
+                    eventDateValue = formatDate(columnValue.replace(/[=><_]/gi, ''));
+                  }
+                  
+
 
                   // Elements filter from whonet code
                   elementsFilterResult = dataElements.find((element) => {
@@ -119,9 +125,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                     }; 
 
                   }
-                  if (csvColumnName === eventDate) {
-                    eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
-                  }
+
                   // Attributes filter from whonet code
                   
                   attributesFilterResult = attributes.find(function (attribute) {
@@ -187,7 +191,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                     }); // end await  
                   }
                   if (csvColumnName === eventDate) {
-                    eventDate = formatDate(columnValue.replace(/[=><_]/gi, ''));
+                    eventDateValue = formatDate(columnValue.replace(/[=><_]/gi, ''));
                   }
     
                   // Attributes filter from data store
@@ -309,12 +313,12 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   "enrollments": [{
                     "orgUnit": orgUnitId,
                     "program": config.programId,
-                    "enrollmentDate": eventDate,
-                    "incidentDate": eventDate,
+                    "enrollmentDate": eventDateValue,
+                    "incidentDate": eventDateValue,
                     "events": [{
                       "program": config.programId,
                       "orgUnit": orgUnitId,
-                      "eventDate": eventDate,
+                      "eventDate": eventDateValue,
                       "status": "ACTIVE",
                       "programStage": config.programStage,
                       "dataValues": Object.values(eventsPayloadUpdated)
@@ -358,7 +362,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   "program": config.programId,
                   "orgUnit": orgUnitId,
                   "event": eventId,
-                  "eventDate": eventDate,
+                  "eventDate": eventDateValue,
                   "status": "ACTIVE",
                   "programStage": config.programStage,
                   "dataValues": Object.values(eventsPayloadUpdated)
@@ -387,10 +391,10 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
 
               let finalEventUpdatePayload = '{"events": ' +JSON.stringify(Object.entries(eventPayloadString).map(payload => payload[1]))+ '}';
 
+              console.log("Tracker Payload to send mapped data", trackedEntityJson);
+              console.log("EVENTS Payload to send mapped data",finalEventUpdatePayload)
               let teiResponseData   = await createTrackedEntity(trackedEntityJson);
               let eventResponseData = await updateEvent(finalEventUpdatePayload);
-              console.log("Final teiResponseData payload: ", teiResponseData);
-              console.log("Final eventResponseData payload: ", eventResponseData);
 
               if (typeof teiResponseData.data !== 'undefined' && eventResponseData.data !== 'undefined') {  
                 if (eventResponseData.status === 'ERROR' && eventResponseData.ignored > 0) {
