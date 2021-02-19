@@ -22,7 +22,8 @@ export default class Sidebar extends React.Component {
 	}		
 	
 	handleOrgUnitSelect = ({id, displayName}) => {
-		this.setState({userOrgUnitId : id, userOrgUnitName: displayName});
+		this.setState({ userOrgUnitId: id, userOrgUnitName: displayName });
+		this.setState({programAssignedStatus:false,disabled:false})
 		// console.log("Setting orgUnit: " + displayName + " and org unit id: " + id)
 		this.props.setOrgUnit(id, displayName);
 		

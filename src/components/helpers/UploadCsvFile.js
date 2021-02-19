@@ -129,7 +129,12 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   // Attributes filter from whonet code
                   
                   attributesFilterResult = attributes.find(function (attribute) {
-                    return attribute.code === csvColumnName;
+                    if (attribute.code != undefined) {
+                      return attribute.code.toUpperCase() === csvColumnName.toUpperCase();
+                    }
+                    else {
+                      attribute.code === csvColumnName;
+                    }
                   });
     
                 } else { // Lab
@@ -400,7 +405,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                 if (eventResponseData.status === 'ERROR' && eventResponseData.ignored > 0) {
                   return { 
                     success: false, 
-                    error: "Wrong Data Format present in file!",
+                    error: eventResponseData.importSummaries[0].conflicts[0].value,
                     teiResponse: teiResponseData.data.response,
                     eventResponse: eventResponseData.importSummaries[0],
                   }

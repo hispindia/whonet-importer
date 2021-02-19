@@ -149,6 +149,15 @@ class Main extends Component {
             </AlertStack>
           })
         }
+      else if (response.success===false) {
+            this.setState({feedbackToUser: 
+            <AlertStack>
+                <AlertBar duration={8000} icon critical className="alertBar" onHidden={this.setState({feedbackToUser: ''})}>
+                    {response.error}
+                </AlertBar>
+            </AlertStack>
+          })
+        }
         else {
           if (response.teiResponse.status === "ERROR") {
                         this.setState({               
