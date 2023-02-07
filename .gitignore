@@ -3,6 +3,7 @@
 # dependencies
 /node_modules
 package-lock.json
+yarn.lock
 
 # testing
 /coverage
@@ -11,6 +12,7 @@ package-lock.json
 /build
 
 # misc
+.idea
 .DS_Store
 .env.local
 .env.development.local
