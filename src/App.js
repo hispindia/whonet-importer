@@ -40,7 +40,7 @@ class App extends Component {
         return (
             <D2UIApp>
                 <MuiThemeProvider theme={createMuiTheme(dhis2theme)}>
-                    <HeaderBar appName='Whonet Importer'/> 
+                    <HeaderBar appName='AMR Importer'/>
                     <Main d2={this.state.d2} orgUnitId={this.state.orgUnitId} orgUnitName={this.state.orgUnitName} setOrgUnit={this.setOrgUnit}/>
                 </MuiThemeProvider>
             </D2UIApp>

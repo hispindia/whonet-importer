@@ -1,5 +1,5 @@
 {
-    "name": "WHONET Data Importer",
+    "name": "AMR Data Importer",
     "description": "To import whonet data",
     "version": "1.0",
     "appType": "APP",
@@ -17,6 +17,8 @@
         "company": "UiO"
     },
     "icons": {
-        "48": "./whonet-logo.svg"
+        "48": "./whonet-logo.png",
+		"128": "./whonet-logo.png",
+		"16": "./whonet-logo.png"
     }
 }
