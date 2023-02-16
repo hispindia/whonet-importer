@@ -143,9 +143,10 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   elementsFilterResult = dataStoreNamespaceElements.find((element) => {
                     return element.mapCode === csvColumnName;
                   });
-    
+                    console.log(  " 1 - " + elementId + " - " + elementValue );
                   if (elementsFilterResult && Object.keys(elementsFilterResult).length >= 1) {
-    
+
+                    console.log( Object.keys(elementsFilterResult).length + " 2 - " + elementId + " - " + elementValue );
                     let matchResult = columnValue.match(/\//g);
                     if (matchResult !== null && matchResult.length === 2) {
                       elementValue = formatDate(columnValue);
@@ -153,7 +154,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                       elementValue = columnValue.replace(/[=><_]/gi, '');
                     }
                     elementId = elementsFilterResult.id;
-    
+                    console.log(  " 3 - " + elementId + " - " + elementValue );
                     // Options checking for data elements
                     await getElementDetails(elementId).then((deResponse) => {
                       
@@ -174,7 +175,9 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                               optionsFilterResult = dataStoreNamespaceOptions.filter(function(option) {
                                 return option.mapCode === columnValue;
                               });
-                              if(optionsFilterResult.length >= 1){
+
+                                console.log(Object.keys(optionsFilterResult).length  + " 4 - " + updatedElId + " - " + optionsFilterResult[0].name);
+                              if( optionsFilterResult && Object.keys(optionsFilterResult).length >= 1){
                         
                       // Set option value as option name in the data element        
                                 eventsPayload[index] = {
