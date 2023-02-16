@@ -17,6 +17,7 @@ export default class CsvMappingColumns extends React.Component {
       dsNamespaceElements: [],
       dsNamespaceAttributes: [],
       dsNamespaceOptions: [],
+      dsNameSpaceEventDate: [],
       open: props.isModalOpen,
       dsNameSpace: [],
       disableImportButton: true,
@@ -32,11 +33,21 @@ export default class CsvMappingColumns extends React.Component {
         this.state.dsNameSpace.push(response.data.elements);
         this.state.dsNameSpace.push(response.data.attributes);
         this.state.dsNameSpace.push(response.data.options);
+
+        let tempEventDate =  {
+          id : response.data.eventDate[0],
+          name: 'Event Date',
+          mapCode: response.data.eventDate[0]
+        }
+        let dsNameSpaceEventDateObject = [];
+        dsNameSpaceEventDateObject.push(tempEventDate);
         this.setState({
           dsKeyNotFound: false,
           dsNamespaceElements  : response.data.elements,      
           dsNamespaceAttributes: response.data.attributes,      
-          dsNamespaceOptions   : response.data.options,      
+          dsNamespaceOptions   : response.data.options,
+          dsNameSpaceEventDate : dsNameSpaceEventDateObject,
+
         }); 
       })
 
@@ -50,11 +61,18 @@ export default class CsvMappingColumns extends React.Component {
   }
 	render () {
     const classes = this.props;
+    //console.log( dsNamespaceElements, );
+
     let mapCode, dataValues, loggerTitle, matchedColumns, dsKeyNotFoundMessage;
     let whonetFileData  = Object.entries(this.props.csvData);    
-    const {dsNameSpace} = this.state;   
+    //const {dsNameSpace} = this.state;
+    let dhis2DataFieldsNameSpace = [];
+      dhis2DataFieldsNameSpace.push( this.state.dsNamespaceElements );
+      dhis2DataFieldsNameSpace.push( this.state.dsNamespaceAttributes );
+      dhis2DataFieldsNameSpace.push( this.state.dsNamespaceOptions );
+      dhis2DataFieldsNameSpace.push( this.state.dsNameSpaceEventDate );
 
-    if(this.props.settingType === 'lab'){
+      if(this.props.settingType === 'lab'){
       if (this.state.dsKeyNotFound) {
         dsKeyNotFoundMessage = "No mapping were found for this lab! You can add mapping from the left 'Change mapping' window.";
       } else {
@@ -67,14 +85,15 @@ export default class CsvMappingColumns extends React.Component {
         let splittedValue  = value[0].split(","); // remove the C,2 or C,6 portion
         let csvColumnName  = splittedValue[0];
 
-        // console.log("Lab: ", csvColumnName);
-        matchedColumns = dsNameSpace.map( (data, index ) =>{
+        //console.log("Lab: ", csvColumnName);
+        matchedColumns = dhis2DataFieldsNameSpace.map( (data, index ) =>{
           return data.map( (info, i) => {
-            if (info.mapCode === csvColumnName) 
-              return info.mapCode;                
+            if (info.mapCode === csvColumnName)
+              //return info.mapCode;
+              return info.name;
           } )
         }) 
-        // console.log({matchedColumns});
+        //console.log({matchedColumns});
         return (
           <TableRow key={key}>
             <TableCell component="th" scope="row" style={styleProps.styles.tableHeader}>
