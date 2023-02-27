@@ -33,7 +33,9 @@ export default class CsvMappingColumns extends React.Component {
         this.state.dsNameSpace.push(response.data.elements);
         this.state.dsNameSpace.push(response.data.attributes);
         this.state.dsNameSpace.push(response.data.options);
+        this.state.dsNameSpace.push(response.data.eventDate);
 
+        /*
         let tempEventDate =  {
           id : response.data.eventDate[0],
           name: 'Event Date',
@@ -41,12 +43,14 @@ export default class CsvMappingColumns extends React.Component {
         }
         let dsNameSpaceEventDateObject = [];
         dsNameSpaceEventDateObject.push(tempEventDate);
+        */
         this.setState({
           dsKeyNotFound: false,
           dsNamespaceElements  : response.data.elements,      
           dsNamespaceAttributes: response.data.attributes,      
           dsNamespaceOptions   : response.data.options,
-          dsNameSpaceEventDate : dsNameSpaceEventDateObject,
+          dsNameSpaceEventDate : response.data.eventDate,
+          //dsNameSpaceEventDate : dsNameSpaceEventDateObject,
 
         }); 
       })

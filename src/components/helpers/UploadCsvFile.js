@@ -30,6 +30,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
       let dataStoreNamespaceElements   = [];
       let dataStoreNamespaceAttributes = [];
       let dataStoreNamespaceOptions    = [];
+      let dataStoreNameSpaceEventDate = [];
       let duplicateRecordStatus = false;
       let eventPayloadString = {};
 
@@ -40,6 +41,16 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
           dataStoreNamespaceElements   =  response.data.elements;
           dataStoreNamespaceAttributes =  response.data.attributes;
           dataStoreNamespaceOptions    = response.data.options;
+          dataStoreNameSpaceEventDate    = response.data.eventDate;
+          /*
+          let tempEventDate =  {
+              id : response.data.eventDate[0],
+                name: 'Event Date',
+                mapCode: response.data.eventDate[0]
+            }
+          dsNameSpaceEventDateObject.push(tempEventDate);
+
+           */
         }).catch(error => {
           return { success: null, error: "Could not find organisation unit"} }
         );
@@ -83,14 +94,16 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
       let trackedEntityInstance; 
 
   for (let i = 0; i < csvData.length; i++) {
-
+            //eventDateValue = csvData.data[i]['Req Date'];
             await (async (currentCsvData, duplicateStatus, currentIndex) => {
                 let eventsPayload = {};
+                //let eventsPayload = [];
                 let teiPayload    = {};
+                //let teiPayload    = [];
                 const csvObj      = Object.entries(currentCsvData);
                 let len           = csvObj.length;
-
-            for (let j = 0; j < len - 1; j++) {
+                console.log(  " 1 - " + currentCsvData + " - " + currentCsvData );
+            for (let j = 0; j < len; j++) {
               duplicateStatus = await (async ([columnName, columnValue], duplicate, index) => {
                 
                 let elementsFilterResult, attributesFilterResult, optionsFilterResult;
@@ -101,8 +114,6 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   if (csvColumnName === eventDate) {                    
                     eventDateValue = formatDate(columnValue.replace(/[=><_]/gi, ''));
                   }
-                  
-
 
                   // Elements filter from whonet code
                   elementsFilterResult = dataElements.find((element) => {
@@ -119,6 +130,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                       elementValue = columnValue.replace(/[=><_]/gi, '');
                     }
                     elementId = elementsFilterResult.dataElement.id;
+
                     eventsPayload[index] = {
                       "dataElement": elementId, 
                       "value": elementValue
@@ -143,65 +155,88 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   elementsFilterResult = dataStoreNamespaceElements.find((element) => {
                     return element.mapCode === csvColumnName;
                   });
-                    console.log(  " 1 - " + elementId + " - " + elementValue );
-                  if (elementsFilterResult && Object.keys(elementsFilterResult).length >= 1) {
+                    //console.log(  " 1 - " + elementId + " - " + elementValue );
 
-                    console.log( Object.keys(elementsFilterResult).length + " 2 - " + elementId + " - " + elementValue );
-                    let matchResult = columnValue.match(/\//g);
-                    if (matchResult !== null && matchResult.length === 2) {
-                      elementValue = formatDate(columnValue);
-                    } else {
-                      elementValue = columnValue.replace(/[=><_]/gi, '');
-                    }
-                    elementId = elementsFilterResult.id;
-                    console.log(  " 3 - " + elementId + " - " + elementValue );
-                    // Options checking for data elements
-                    await getElementDetails(elementId).then((deResponse) => {
-                      
-                      if(typeof deResponse!== 'undefined' && typeof deResponse.data.optionSet !== 'undefined'){
-    
-                        let updatedElId = deResponse.data.id;
-                        let optionSetId = deResponse.data.optionSet;
-                        
-                      // Get option sets with all options
-                        getOptionSetDetails(optionSetId.id).then((osResponse) => {
-                          if(typeof osResponse!== 'undefined'){
-    
-                            let optionsDetail = osResponse.data.options;
-                            for (let i = 0; i < optionsDetail.length; i++) {
-    
-                              // let optionName = optionsDetail[i].name;
-                      // Options map filter from data store 
-                              optionsFilterResult = dataStoreNamespaceOptions.filter(function(option) {
-                                return option.mapCode === columnValue;
-                              });
+                  //let tempEventDataValue = {}
+                  //if (elementValue !== "") {
+                      if (elementsFilterResult && Object.keys(elementsFilterResult).length >= 1) {
 
-                                console.log(Object.keys(optionsFilterResult).length  + " 4 - " + updatedElId + " - " + optionsFilterResult[0].name);
-                              if( optionsFilterResult && Object.keys(optionsFilterResult).length >= 1){
-                        
-                      // Set option value as option name in the data element        
-                                eventsPayload[index] = {
-                                  "dataElement": updatedElId, 
-                                  "value": optionsFilterResult[0].name
-                                };  
+                          //onsole.log( Object.keys(elementsFilterResult).length + " 2 - " + elementId + " - " + elementValue );
+                          let matchResult = columnValue.match(/\//g);
+                          if (matchResult !== null && matchResult.length === 2) {
+                              elementValue = formatDate(columnValue);
+                          } else {
+                              elementValue = columnValue.replace(/[=><_]/gi, '');
+                          }
+                          elementId = elementsFilterResult.id;
+                          console.log(  " elementId - " + elementId + " elementValue - " + elementValue );
+                          // Options checking for data elements
+                          await getElementDetails(elementId).then((deResponse) => {
+
+                              if (typeof deResponse !== 'undefined' && typeof deResponse.data.optionSet !== 'undefined') {
+
+                                  let updatedElId = deResponse.data.id;
+                                  let optionSetId = deResponse.data.optionSet;
+
+                                  // Get option sets with all options
+                                  //getOptionSetDetails(optionSetId.id).then((osResponse) => {
+                                      //if (typeof osResponse !== 'undefined') {
+
+                                          //let optionsDetail = osResponse.data.options;
+                                          //for (let i = 0; i < optionsDetail.length; i++) {
+
+                                              // let optionName = optionsDetail[i].name;
+                                              // Options map filter from data store
+                                              optionsFilterResult = dataStoreNamespaceOptions.filter(function (option) {
+                                                  return option.mapCode === columnValue;
+                                              });
+
+                                              //console.log(Object.keys(optionsFilterResult).length  + " 4 - " + updatedElId + " - " + optionsFilterResult[0].name);
+                                              if (optionsFilterResult && Object.keys(optionsFilterResult).length >= 1) {
+
+                                                  // Set option value as option name in the data element
+                                                  //tempEventDataValue.dataElement = updatedElId;
+                                                  //tempEventDataValue.value = optionsFilterResult[0].name;
+                                                  //eventsPayload.push(tempEventDataValue);
+
+                                                  eventsPayload[index] = {
+                                                      "dataElement": updatedElId,
+                                                      "value": optionsFilterResult[0].name
+                                                  };
+
+                                              }
+                                          //}
+                                      //} // end of osResponse
+                                  //});
+
+                              } else { // if this element has no option set, the value will be the excel/csv cell value
+
+                                  //tempEventDataValue.dataElement = elementId;
+                                  //tempEventDataValue.value = elementValue;
+                                  //eventsPayload.push(tempEventDataValue);
+
+                                  eventsPayload[index] = {
+                                      "dataElement": elementId,
+                                      "value": elementValue
+                                  };
+
+
                               }
-                            }
-                          } // end of osResponse
-                        });                                  
-                          
-                      } else { // if this element has no option set, the value will be the excel/csv cell value
-                          eventsPayload[index] = {
-                            "dataElement": elementId, 
-                            "value": elementValue
-                          };
-                        }  
-                      
-                    }); // end await  
-                  }
+
+                          }); // end await
+                      }
+                  //}
+                  /*
                   if (csvColumnName === eventDate) {
                     eventDateValue = formatDate(columnValue.replace(/[=><_]/gi, ''));
                   }
-    
+
+                   */
+
+                  if (csvColumnName === dataStoreNameSpaceEventDate[0].mapCode) {
+                    eventDateValue = formatDate(columnValue.replace(/[=><_]/gi, ''));
+                  }
+
                   // Attributes filter from data store
                   attributesFilterResult = dataStoreNamespaceAttributes.find(function (attribute) {
                     return attribute.mapCode === csvColumnName;
@@ -223,8 +258,9 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   } else {
                     attributeValue = columnValue.replace(/[=><_]/gi, '');
                   }
-    
+                  //let tempTeiAttributeValue = {}
                   if (importFileType === 'lab') {
+
                   // Options checking for attributes
                     await getAttributeDetails(attributeId).then((attributeResponse) => {
                     
@@ -234,11 +270,11 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                       let optionSetId = attributeResponse.data.optionSet;
                       
                     // Get option sets with all options
-                      getOptionSetDetails(optionSetId.id).then((osResponse) => {
-                        if(typeof osResponse!== 'undefined'){
+                      //getOptionSetDetails(optionSetId.id).then((osResponse) => {
+                        //if(typeof osResponse!== 'undefined'){
     
-                          let optionsDetail = osResponse.data.options;
-                          for (let i = 0; i < optionsDetail.length; i++) {
+                          //let optionsDetail = osResponse.data.options;
+                          //for (let i = 0; i < optionsDetail.length; i++) {
     
                             // let optionName = optionsDetail[i].name;
                     // Options map filter from data store 
@@ -247,18 +283,27 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                             });
                             if(optionsFilterResult.length >= 1){
                       
-                    // Set option value as option name in the attributes       
+                    // Set option value as option name in the attributes
+                              //tempTeiAttributeValue.attribute = attributeId;
+                              //tempTeiAttributeValue.value = optionsFilterResult[0].name;
+                              //teiPayload.push(tempTeiAttributeValue);
+
                               teiPayload[index] = {
                                 "attribute": attributeId,
                                 "value": optionsFilterResult[0].name
-                              }; 
+                              };
+
                             }
-                          }
-                        } // end of osResponse
-                      });                                  
+                          //}
+                        //} // end of osResponse
+                      //});
                         
                     } else { // if this element has no option set, the value will be the excel/csv cell value
-                      teiPayload[index] = {
+                        //tempTeiAttributeValue.attribute = attributeId;
+                        //tempTeiAttributeValue.value = attributeValue;
+                        //teiPayload.push(tempTeiAttributeValue);
+
+                        teiPayload[index] = {
                         "attribute": attributeId,
                         "value": attributeValue
                       };
@@ -267,10 +312,14 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                     }); // end await
     
                   } else { // If attributes are whonet
+                      //tempTeiAttributeValue.attribute = attributeId;
+                      //tempTeiAttributeValue.value = attributeValue;
+                      //teiPayload.push(tempTeiAttributeValue);
+
                     teiPayload[index] = {
                         "attribute": attributeId,
                         "value": attributeValue
-                      }; 
+                      };
                   }                
                   
                   // Duplicate Patient ID checking
@@ -301,20 +350,31 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
             * @eventsPayloadUpdated returns updated json payload with dynamically generated amrid
             */
             
-            let amrIdPayload = [{
+            let amrIdPayload = {
               "dataElement": config.amrIdDataElement,
               "value": getAmrId
-            }];
-            let eventsPayloadUpdated = Object.assign(eventsPayload, amrIdPayload);
-    
-    
+            };
+            //let eventsPayloadUpdated = Object.assign(eventsPayload, amrIdPayload);
+            /*
+            let eventsPayloadUpdated =[eventsPayload];
+            eventsPayloadUpdated.push(amrIdPayload);
+            */
+
+            eventsPayload[parseInt(eventsPayload.length) + 1] = {
+                "dataElement": config.amrIdDataElement,
+                "value": getAmrId
+            };
+
+            //eventsPayload.push(amrIdPayload);
+            let eventsPayloadUpdated = eventsPayload;
             /**
             * @{Object.keys(teiPayload)} checkes the json payload length
             * @{teiPayloadString} returns json payload with non-duplicate data to create new entity
             */
             if (!duplicateRecordStatus) {
-              if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length) {    
-                teiPayloadString[currentIndex] = {
+              if (Object.keys(teiPayload).length || Object.keys(eventsPayloadUpdated).length) {
+                //teiPayloadString = {
+                  teiPayloadString[currentIndex] = {
                   "trackedEntityType": config.trackedEntityType,
                   "orgUnit": orgUnitId,
                   "attributes": Object.values(teiPayload),
@@ -330,6 +390,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                       "status": "ACTIVE",
                       "programStage": config.programStage,
                       "dataValues": Object.values(eventsPayloadUpdated)
+                      //"dataValues": eventsPayloadUpdated
                     }]
                   }]
                 };
@@ -365,6 +426,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   }]
                 }]
               };*/
+              //eventPayloadString = {
               eventPayloadString[currentIndex] = {
                 
                   "program": config.programId,
@@ -374,7 +436,7 @@ export const uploadCsvFile = async (result, orgUnitId, importFileType, requiredC
                   "status": "ACTIVE",
                   "programStage": config.programStage,
                   "dataValues": Object.values(eventsPayloadUpdated)
-                
+                  //"dataValues": eventsPayloadUpdated
               };
 
             }

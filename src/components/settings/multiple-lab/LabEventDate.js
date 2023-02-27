@@ -124,7 +124,14 @@ class LabEventDate extends React.Component {
     });
 
     // Create updated array for event
-    updatedEventDate.push(updateArray[0].value);
+    updatedEventDate.push({
+      "id": updateArray[0].value,
+      "name": 'Event Date',
+      "mapCode": updateArray[0].value,
+      "code": updateArray[0].value
+    });
+
+    //updatedEventDate.push(updateArray[0].value);
 
     // If there is no key exist then create first then add settings data
     if (typeof dataStoreNameSpace === 'undefined') {
