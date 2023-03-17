@@ -242,11 +242,13 @@ class FilePicker extends Component {
             });
 
             // Required file column check
+            /* comment for shows msg while upload file related to required fields
             Papa.parse(event.target.files[0], {
               complete: this.handleFileRequiredFields,
               header: true,
               skipEmptyLines: true,
-            }); 
+            });
+             */
           }  
         }
     }
