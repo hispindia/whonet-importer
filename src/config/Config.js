@@ -10,14 +10,18 @@ export const fetchOptions = {
   }
 };
 
-export const programId      = "ywNJYaTUVRT";
+//export const programId      = "ywNJYaTUVRT";
+export const programId      = "Uj0u5eXg0RK";
 export const optionGroupsId = "RdA1TnokkbH";
-export const programStage   = "HrdLXTOGh8A";
+//export const programStage   = "HrdLXTOGh8A";
+export const programStage   = "allOciWfgZJ";
 export const trackedEntityInstance = "zYZHWSkfv10";
-export const trackedEntityType     = "tOJvIFXsB5V";
+//export const trackedEntityType     = "tOJvIFXsB5V";
+export const trackedEntityType     = "sCJxNZOW8Iq";
 export const dateColumn        = "DATE_DATA";
 export const patientIdColumn   = "PATIENT_ID";
-export const amrIdDataElement  = 'lIkk661BLpG';
+//export const amrIdDataElement  = 'lIkk661BLpG';
+export const amrIdDataElement  = 'urKqb8jWrV9';
 export const metaAttributeName = "WHONET code";
 export const metaAttributeUId  = "e5naGkHZ5qv";
 
