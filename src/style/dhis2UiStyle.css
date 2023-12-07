@@ -17,9 +17,10 @@ body {
     font-weight: bold;
 }
 .pageContainer {
-    width: 100%;
-    display: flex;
-    flex-direction: row; 
+    /*width: 100%;*/
+    /*display: flex;*/
+    /*flex-direction: row; */
+    float: left;
     background-color: rgb(240, 240, 240);
     min-height: calc(100vh - 48.99px);
 }
@@ -43,8 +44,9 @@ body {
 
 /* ............... */
 .importPreview {
-    width: 100%;; 
+    width: 70%;
     text-align: center;
+    float: left;
 }
 .emptyFilePreviewText {
     margin-top: 45vh;

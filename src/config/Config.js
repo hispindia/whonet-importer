@@ -28,3 +28,11 @@ export const metaAttributeUId  = "e5naGkHZ5qv";
 export const requiredColumns   = [""];
 // export const requiredColumns   = "Patient ID, Sample collection date, Organism name, Sample type";
 export const settingType 	   = "lab"; // lab setting keyword
+
+
+// for aggregation
+export const sampleLocationDepartment_Code = "sampleLocationDepartment";
+export const defaultCC_code = "default";
+export const allOrganismsSampleWiseDataSet = "oG3BlD3M9IE";
+export const allOrganismsAntibioticWiseDataSet = "CBsMJKLKkUQ";
+export const antibioticCategoryComboCode = "antibiotic";

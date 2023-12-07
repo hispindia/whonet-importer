@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as config  from '../../config/Config';
 import { get } from './CRUD';
 import { request } from './Request';
+import { post } from './CRUD';
 
 /**
 * Check the selected org unit is assigned under this program or not
@@ -103,6 +104,25 @@ export const createTrackedEntity = async (trackedEntityJson) => {
 
 };
 
+export const createTrackedEntityInstance = async (trackedEntityJson) => {
+
+    return axios(config.baseUrl+'api/trackedEntityInstances', {
+        method: 'POST',
+        headers: config.fetchOptions.headers,
+        data: trackedEntityJson,
+        withCredentials: true,
+    }).then(response => {
+        return response;
+    })
+        .catch(error => {
+            console.log("Error Data",error.response.data.message)
+            return error.response;
+        });
+
+};
+
+
+
 /**
 * Get event id by TEI id to update duplicate record
 * @param {String} programId - program id
@@ -113,9 +133,10 @@ export const createTrackedEntity = async (trackedEntityJson) => {
 
 export const getEventId = (programId, orgUnitId, teiId) => {
 
-  return get('api/events.json?program='+programId+'&ou='+orgUnitId+'&fields=event&trackedEntityInstance='+teiId)
+  return get('api/events.json?program='+programId+'&ou='+orgUnitId+'&fields=event,enrollment,trackedEntityInstance&trackedEntityInstance='+teiId)
       .then(function (response) { 
-      return response.data.events[0].event;
+      //return response.data.events[0].event;
+      return response.data.events[0];
     })
     .catch(function (error) {
       console.log(error);
@@ -224,18 +245,198 @@ export const getMultipleElements = async (elementArray) => {
     });
 };
 
-/**
-* @retunrs single attribute detail
+export const getDataElementsDetails = async () => {
+    const dataElements = {}
+    //This is to hold the data elements with their codes and have the whole DE object referenced.
+    const dataElementObjects = {}
+    //this is used to distinguish which data element contains which attribute value.
+    dataElementObjects.attributeGroups={}
+
+    return await get('api/dataElements.json?paging=false&fields=id,code,displayName,formName,attributeValues[value,attribute[id,name]]')
+        .then(function (response) {
+
+            response.data.dataElements.forEach(
+                de => {
+                    dataElements[de.id] = de.formName ? de.formName : de.displayName
+
+                    //remap the attributeOptionValue with code
+                    de.attributeValues.forEach(attributeValue=>{
+                        de[attributeValue.attribute.code]=attributeValue.value
+                        if(!dataElementObjects.attributeGroups[attributeValue.value]){
+                            dataElementObjects.attributeGroups[attributeValue.value] =[]
+                        }
+                        dataElementObjects.attributeGroups[attributeValue.value].push(de.id)
+                    })
+
+                    dataElementObjects[de.id]=de
+                    dataElementObjects[de.code]=de
+                }
+            )
+            //return response;
+            return dataElementObjects;
+        })
+        .catch(function (error) {
+            console.log("error: ",error);
+        });
+};
+
+
+export const getCategoryCombosOptionsDetails = async () => {
+    const categoryCombos={}
+
+    return await get('api/categoryCombos.json?paging=false&fields=id,displayName,code,categoryOptionCombos[id,displayName,code,categoryOptions[id,code,displayName]]')
+        .then(function (response) {
+
+            response.data.categoryCombos.forEach(categoryCombo=>{
+                categoryCombo.categoryOptions={}
+                categoryCombo.categoryOptionCombos.forEach(categoryOptionCombo=>{
+                    //use the code of the options as the identifier for the categoryOptionCode
+                    let categoryOptionCodes = []
+                    categoryOptionCombo.categoryOptions.forEach(categoryOption => {
+
+                        categoryOptionCodes.push(categoryOption.code)
+                        //This adds the categoryOptions as a child of the catCombo it is usefull for DS attributes.
+                        if (!categoryCombo.categoryOptions[categoryOption.code]) {
+                            categoryCombo.categoryOptions[categoryOption.code]=categoryOption.id
+                        }
+                    })
+                    //sort Ids for handling more than two categoyOptions
+                    categoryOptionCodes = categoryOptionCodes.sort();
+                    let identifierWithOptionCodes = categoryOptionCodes.join("")
+                    categoryCombo.categoryOptionCombos[identifierWithOptionCodes]=categoryOptionCombo.id
+                })
+                categoryCombos[categoryCombo.code]=categoryCombo
+            })
+            //return response;
+            return categoryCombos;
+        })
+        .catch(function (error) {
+            console.log("error: ",error);
+        });
+};
+
+/*
+export const postAggregatedDataValue = async (aggregatedDataValueJson) => {
+
+    return axios(config.baseUrl+'api/dataValues', {
+        method: 'POST',
+        headers: config.fetchOptions.headers,
+        data: JSON.stringify(aggregatedDataValueJson),
+        withCredentials: true,
+    }).then(response => {
+        return response;
+    })
+    .catch(error => {
+        console.log("Error Data",error.response.data.message)
+        return error.response;
+    });
+
+};
 */
+export const postAggregatedDataValue = async ( period, dataSet, de, orgUnit, cc, cp, co, defaultValue ) => {
+    return await post('api/dataValues.json?paging=false&pe='+period+'&ds='+dataSet+ '&de='+de+ '&ou='+orgUnit+'&cc='+cc +'&cp='+cp +'&co='+co +'&value='+defaultValue )
+        .then(function (response) {
+            return response;
+        })
+        .catch(function (error) {
+            console.log("Error Data",error.response.data.message)
+            return error.response;
+        });
+
+
+};
+
+export const getAggregatedDataValue = async ( period, dataSet, de, orgUnit, cc, cp, co, operation ) => {
+
+    let value = 0
+    return await get('api/dataValues.json?paging=false&pe='+period+'&ds='+dataSet+ '&de='+de+ '&ou='+orgUnit+'&cc='+cc +'&cp='+cp +'&co='+co )
+        .then(function (response) {
+
+            //alert( response.data.httpStatusCode + " -- " + response.data.message);
+            //alert( response.data.status + " -- " + response.data.httpStatus);
+            if (response.data.httpStatus === "Conflict") {
+                //this means that the value does not exist so return 0
+            } else {
+                //this means that the value exists and is returned so return that.
+                value = parseInt(response.data[0]);
+            }
+            //Now that we have the value, perform increment or decrement
+            if (operation === "COMPLETE") {
+                value = value + 1
+            } else if (operation === "INCOMPLETE") {
+                value = (value === 0 ? 0 : value - 1); //if value is 0 return 0 else return decremented value
+            } else {
+                //if code reaches here, then it is in an unstable state so respond with an error
+                return {
+                    response: false,
+                    message: 'Received an invalid value when aggregating for dataSet' + dataSet
+                }
+            }
+            return {
+                response: true,
+                value: value
+            }
+
+            //return response.data.events[0].event;
+        })
+        .catch(function (error) {
+            console.log(error);
+            if (operation === "COMPLETE") {
+                value = value + 1
+            }
+            return {
+                response: true,
+                value: value
+            }
+        });
+
+/*
+    let a = await get(
+        request(`api/dataValues.json?paging=false`, {
+            options: [`pe=${period}&ds=${dataSet}&de=${de}&ou=${orgUnit}&cc=${cc}&cp=${cp}&co=${co}`],
+        })
+    )
+
+    if (a.httpStatus === "Conflict") {
+        //this means that the value does not exist so return 0
+    } else {
+        //this means that the value exists and is returned so return that.
+        value = parseInt(a[0]);
+    }
+
+    //Now that we have the value, perform increment or decrement
+    if (operation === "COMPLETE") {
+        value = value + 1
+    } else if (operation === "INCOMPLETE") {
+        value = (value === 0 ? 0 : value - 1); //if value is 0 return 0 else return decremented value
+    } else {
+        //if code reaches here, then it is in an unstable state so respond with an error
+        return {
+            response: false,
+            message: `Received an invalid value when aggregating for dataSet,${dataSet}.`
+        }
+    }
+    return {
+        response: true,
+        value: value
+    }
+    */
+}
+
+
+/**
+ * @retunrs single attribute detail
+ */
 export const getAttributeDetails = async (attributeId) => {
     return await get('api/trackedEntityAttributes/'+attributeId)
-    	.then(function (response) {    		
-			return response;
-		})
-		.catch(function (error) {
-			console.log(error);
-		});
+        .then(function (response) {
+            return response;
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
 };
+
 
 /**
 * @retunrs single attribute detail

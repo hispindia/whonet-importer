@@ -1,4 +1,4 @@
-## WHONET to DHIS2 AMR Importer App
+## WHONET to DHIS2 AMR Importer App with aggregate data to aggregated data-value
 
 In the project directory, you can run:
 

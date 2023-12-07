@@ -17,6 +17,7 @@ class Main extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            res: [],
             importFile: undefined,
             orgUnitId: '',
             orgUnitName: '',
@@ -117,8 +118,7 @@ class Main extends Component {
                 this.setState({
                     loading: true
                 })
-
-                await uploadCsvFile(this.state.importFile, this.state.orgUnitId, this.state.importFileType, this.state.requiredColumnsAttValue, this.state.dataElements, this.state.attributes, this.state.eventDate).then((response) => {
+                await uploadCsvFile(this.state.importFile, this.state.orgUnitId, this.state.importFileType, this.state.requiredColumnsAttValue, this.state.dataElements, this.state.attributes, this.state.eventDate, this).then((response) => {
                     //console.log("Response from uploadCsvFile: " + JSON.stringify(response))
                     this.setState({
                         teiResponse: response.teiResponse,
@@ -190,7 +190,6 @@ class Main extends Component {
             });
           }
 
-
         } 
     }    
 
@@ -255,6 +254,7 @@ class Main extends Component {
         }
 
         return (
+            <div>
             <div className='pageContainer'>
                 {importLoader}
                 <Sidebar 
@@ -269,9 +269,32 @@ class Main extends Component {
                 callbackRequiredColumnsAtt = {this.callbackRequiredColumnsAttValue}
                 dtNotFoundStatus = {this.state.namespaceNotfoundMessage}
                 />
-                {importPreview}               
-                
-                {this.state.feedbackToUser}                                    
+                {this.state.feedbackToUser}
+            </div>
+                {this.state.res.length? (
+
+                        <table style={{width:'70%'}}>
+                            <tr>
+                                <td>Sl No.</td>
+                                <td>Case No.</td>
+                                <td>Status</td>
+                                <td>Response</td>
+                            </tr>
+                            {
+                                this.state.res.map((tei, index) => (
+                                    <tr>
+                                        <td>{(index+1)}</td>
+                                        <td>{tei.teiCase}</td>
+                                        <td>{tei.status}</td>
+                                        <td>{tei.message}</td>
+
+                                    </tr>
+                                ))
+                            }
+                        </table>
+                    )
+                    : importPreview
+                }
             </div>
         );
     }
